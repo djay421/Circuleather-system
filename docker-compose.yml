@@ -1,23 +1,19 @@
-version: "3.9"
-
 services:
   web:
-    image: php:8.3-apache
+    build: .
     container_name: circuleather_web
     ports:
       - "8080:80"
     volumes:
       - ./src:/var/www/html
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_NAME: circuleather_crm
       DB_USER: crm_user
       DB_PASSWORD: crm_password
-    command: >
-      bash -c "docker-php-ext-install mysqli pdo pdo_mysql && apache2-foreground"
-
   db:
     image: mysql:8.0
     container_name: circuleather_db
@@ -32,6 +28,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   phpmyadmin:
     image: phpmyadmin:latest
@@ -44,7 +45,8 @@ services:
       PMA_USER: root
       PMA_PASSWORD: root_password
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:
