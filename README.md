@@ -84,7 +84,19 @@ zonder dat de applicatie herbouwd hoeft te worden.
   - `profile.php` "Mijn account" (2FA zelf regelen) · `users.php`/`user_edit.php` accountbeheer (admin)
   - `functies.php` gedeelde helpers (dynamische criteria) · `nav.php` navigatie
   - `style.css` + `fonts/` merkstijl (Poppins, kleuren van circuleather.com) · `db.php` databaseverbinding
+  - `live.js` live-updates (pollen, geen herladen nodig)
 - `docker-compose.yml` + `Dockerfile` — lokale omgeving (Apache + PHP + MySQL + phpMyAdmin)
+
+## Live-updates (zonder herladen)
+
+De pagina's "Voorraad" en "Galerij" pollen elke 3 seconden een licht
+fragment-eindpunt (`?deel=tbody` / `?deel=grid`) en vervangen alleen het
+veranderde deel (rijen/kaarten + tellingen). Zet iemand anders een item toe,
+wijzigt de status of verkoopt een sample, dan zie je dat op een open pagina
+binnen enkele seconden verschijnen — zonder te verversen. In een tab op de
+achtergrond wordt er niet gepollt; zodra je terugkeert volgt direct een
+controle. De gegevens komen uit dezelfde database en dezelfde sessiebeveiliging
+als de gewone pagina's.
 
 ## Inloggen en accounts
 

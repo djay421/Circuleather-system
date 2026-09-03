@@ -86,7 +86,7 @@ $codes = $fase === 'codes' && empty($codes) ? ($_SESSION['2fa_codes'] ?? []) : $
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>2FA instellen — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <style>
         .qr-vak { display: flex; justify-content: center; margin: 14px 0 4px; }
         .qr-vak svg { width: 220px; height: 220px; }

@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS voorraad (
     status ENUM('beschikbaar', 'gereserveerd', 'in_bewerking', 'verkocht') NOT NULL DEFAULT 'beschikbaar',
     binnenkomst_datum DATE NULL,
     opmerking TEXT NULL,
+    foto VARCHAR(255) NULL COMMENT 'geüploade productfoto (relatief pad, uploads/...)',
     aangemaakt_op DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (stad_id) REFERENCES steden(id) ON DELETE SET NULL,
     FOREIGN KEY (bigbag_id) REFERENCES voorraad(id) ON DELETE SET NULL

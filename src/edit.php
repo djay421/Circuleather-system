@@ -86,11 +86,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $waarden = leesPostWaarden($criteria, $categorie, $_POST);
     $errors = array_merge($errors, valideerCriteriaWaarden($waarden, $criteria));
 
+    // Foto: vervangen met een nieuw bestand, of verwijderen.
+    $fotoWaarde = $item['foto'] ?? null;
+    if (empty($errors) && $categorie === 'leersample') {
+        if (!empty($_FILES['foto']['name'] ?? '')) {
+            [$nieuwPad, $fout] = verwerkFotoUpload($_FILES['foto'] ?? []);
+            if ($fout) {
+                $errors[] = $fout;
+            } else {
+                $fotoWaarde = $nieuwPad;
+            }
+        } elseif (!empty($_POST['verwijder_foto']) && $fotoWaarde) {
+            verwijderFotoBestand($fotoWaarde);
+            $fotoWaarde = null;
+        }
+    }
+
     if (empty($errors)) {
+        if ($fotoWaarde !== ($item['foto'] ?? null) && $fotoWaarde !== null) {
+            verwijderFotoBestand($item['foto'] ?? null); // oude foto opruimen bij vervangen
+        }
         $stmt = $pdo->prepare(
             'UPDATE voorraad
              SET code = :code, stad_id = :stad_id, bigbag_id = :bigbag_id,
-                 locatie = :locatie, status = :status,
+                 locatie = :locatie, status = :status, foto = :foto,
                  binnenkomst_datum = :binnenkomst_datum
              WHERE id = :id'
         );
@@ -102,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 : null,
             'locatie' => $input['locatie'],
             'status' => $input['status'],
+            'foto' => $fotoWaarde,
             'binnenkomst_datum' => $input['binnenkomst_datum'] !== '' ? $input['binnenkomst_datum'] : null,
             'id' => $id,
         ]);
@@ -118,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Circuleather — Voorraad bewerken</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -135,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="id" value="<?= $id ?>">
         <input type="hidden" name="categorie" value="<?= htmlspecialchars($categorie) ?>">
 
@@ -172,9 +192,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </fieldset>
         <?php else: ?>
             <fieldset>
-                <legend>Leersample</legend>
-                <p class="meta">Koppel dit sample aan de bigbag waar het uit komt (optioneel),
-                zodat herkomststad en datum herleidbaar blijven.</p>
+                <legend>Leersample</legend>            <p class="meta">Koppel dit sample aan de bigbag waar het uit komt (optioneel),
+            zodat herkomststad en datum herleidbaar blijven.</p>
+
+            <?php if (!empty($item['foto'])): ?>
+                <p class="meta"><img src="<?= htmlspecialchars($item['foto']) ?>" alt="Huidige foto" style="max-width:100%;max-height:190px;border-radius:12px;border:1px solid var(--lijn);display:block;margin-top:8px"></p>
+            <?php endif; ?>
+            <label for="foto">Foto <?= empty($item['foto']) ? '(optioneel)' : '(vervang huidige foto)' ?></label>
+            <input type="file" id="foto" name="foto" accept="image/*">
+            <?php if (!empty($item['foto'])): ?>
+                <label class="optie" style="margin-top:10px"><input type="checkbox" name="verwijder_foto" value="1"> Foto verwijderen</label>
+            <?php endif; ?>
 
                 <label for="bigbag_id">Afkomstig uit bigbag (optioneel)</label>
                 <select id="bigbag_id" name="bigbag_id">

@@ -34,7 +34,7 @@ $gebruikers = $pdo->query('SELECT id, naam, email, rol, actief, totp_secret, aan
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Medewerkers — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
     <?php include 'nav.php'; ?>

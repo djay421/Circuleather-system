@@ -42,6 +42,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ongedaan'])) {
     }
 }
 
+// Foto toevoegen of vervangen (knopje op de verkoopkaart).
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['actie'] ?? '') === 'foto') {
+    $id = (int)($_POST['id'] ?? 0);
+    $stmt = $pdo->prepare("SELECT id, foto, status FROM voorraad WHERE id = ? AND categorie = 'leersample'");
+    $stmt->execute([$id]);
+    $item = $stmt->fetch();
+    if (!$item) {
+        $errors[] = 'Sample niet gevonden.';
+    } else {
+        [$pad, $fout] = verwerkFotoUpload($_FILES['foto'] ?? []);
+        if ($fout) {
+            $errors[] = $fout;
+        } elseif ($pad !== null) {
+            $upd = $pdo->prepare('UPDATE voorraad SET foto = ? WHERE id = ?');
+            $upd->execute([$pad, $id]);
+            verwijderFotoBestand($item['foto']); // oude foto opruimen bij vervangen
+            $melding = 'Foto opgeslagen.';
+        } else {
+            $errors[] = 'Kies eerst een afbeelding.';
+        }
+    }
+}
+
 // Filters
 $toon = (string)($_GET['toon'] ?? 'tekoop');
 if (!in_array($toon, ['tekoop', 'alles', 'verkocht'], true)) {
@@ -82,7 +105,7 @@ if ($zoek !== '') {
 $in = implode(' AND ', $where);
 
 $stmt = $pdo->prepare(
-    "SELECT v.id, v.code, v.categorie, v.status, v.opmerking, b.code AS bigbag_code,
+    "SELECT v.id, v.code, v.categorie, v.status, v.opmerking, v.foto, b.code AS bigbag_code,
             vk.verkocht_op, vk.gebruiker_id, g.naam AS verkoper
      FROM voorraad v
      LEFT JOIN voorraad b ON b.id = v.bigbag_id
@@ -100,24 +123,12 @@ $kenmerken = haalKenmerken($pdo, array_map(fn ($i) => (int)$i['id'], $items));
 $aantalTeKoop = (int)$pdo->query("SELECT COUNT(*) FROM voorraad WHERE categorie = 'leersample' AND status IN ('beschikbaar','gereserveerd')")->fetchColumn();
 $aantalVerkocht = (int)$pdo->query("SELECT COUNT(*) FROM voorraad WHERE categorie = 'leersample' AND status = 'verkocht'")->fetchColumn();
 
-/** Kleurvlak voor een leerstaal op basis van de kleurcategorie. */
-function leerStaal(string $naam): string
-{
-    $kaart = [
-        'zwart' => '#26231f', 'wit' => '#f4f1e8', 'grijs' => '#8f8b84',
-        'bruin' => '#7c5232', 'beige' => '#d8c5a2', 'crème' => '#ece0c6',
-        'blauw' => '#41566e', 'groen' => '#59633e', 'rood' => '#8f3f2c',
-        'bordeaux' => '#5f2430', 'geel' => '#c9a23e', 'mosterd' => '#b08a2c',
-        'oranje' => '#b86a2f', 'roze' => '#c08a7d', 'paars' => '#5c4a6b',
-        'antraciet' => '#4a4a4c', 'naturel' => '#cbb088',
-    ];
-    foreach ($kaart as $sleutel => $hex) {
-        if (mb_stripos($naam, $sleutel) !== false) {
-            return $hex;
-        }
-    }
-    return '#b3a38c';
+// Live-update-fragment: buffert de pagina en stuurt alleen de grid als JSON.
+$liveFragment = ($_GET['deel'] ?? '') === 'grid';
+if ($liveFragment) {
+    ob_start();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -125,7 +136,7 @@ function leerStaal(string $naam): string
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Galerij — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <style>
         .g-tel { color: var(--mild); font-size: 14px; }
         .g-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; background: var(--wit); border: 1px solid var(--lijn); border-radius: var(--radius); padding: 14px; margin: 6px 0 16px; }
@@ -140,8 +151,28 @@ function leerStaal(string $naam): string
         .g-filters .segm a.actief { background: var(--ink); color: #fff; }
         .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 16px; }
         .g-kaart { background: var(--wit); border: 1px solid var(--lijn); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--schaduw); }
-        .g-staal { height: 96px; position: relative; }
+        .g-staal { height: 150px; position: relative; }
         .g-staal::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(0,0,0,.12)); mix-blend-mode: multiply; }
+        .g-foto { height: 150px; position: relative; background: var(--beige); }
+        .g-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .g-fotovorm { position: absolute; right: 10px; bottom: 10px; margin: 0; padding: 0; background: transparent; box-shadow: none; border: 0; border-top: 0; max-width: none; z-index: 2; }
+        .g-fotovorm button, .g-fotoknop {
+            display: inline-block;
+            padding: 8px 12px;
+            background: rgba(33, 28, 22, .72);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .55);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, .28);
+            margin: 0;
+            width: auto;
+        }
+        .g-fotoknop { position: relative; overflow: hidden; }
+        .g-fotoknop input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .g-fotovorm button:hover, .g-fotoknop:hover { background: var(--leer-donker); }
         .g-lichaam { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
         .g-code { font-family: "Poppins", system-ui, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: .02em; color: var(--ink); text-transform: uppercase; }
         .g-regel { font-size: 13px; color: var(--ink); }
@@ -157,11 +188,17 @@ function leerStaal(string $naam): string
         details.g-meer dd { margin: 0 0 0 2px; font-size: 13px; }
         .g-leeg { text-align: center; color: var(--mild); padding: 40px 10px; border: 1px dashed var(--lijn); border-radius: var(--radius); }
         .g-verkocht-donker { color: var(--mild); }
+        @media (max-width: 760px) {
+            .g-filters form { flex-wrap: wrap; }
+            .g-filters form input[type="search"] { flex: 1 1 100%; max-width: none; }
+            .g-filters .segm { flex: 1 1 100%; justify-content: center; }
+            .g-filters .segm a { flex: 1; text-align: center; }
+        }
     </style>
 </head>
 <body>
     <?php include 'nav.php'; ?>
-    <h1>Galerij <small>leersamples · <?= $aantalTeKoop ?> te koop · <?= $aantalVerkocht ?> verkocht</small></h1>
+    <h1>Galerij <small id="gal-tel">leersamples · <?= $aantalTeKoop ?> te koop · <?= $aantalVerkocht ?> verkocht</small></h1>
     <p class="meta">De samples die beschikbaar zijn als verkoop. Toon een klant het staal op je
     telefoon of tablet; met “Verkoop” haal je de sample direct uit de voorraad (registratie: wie en wanneer).</p>
 
@@ -178,11 +215,11 @@ function leerStaal(string $naam): string
 
     <div class="g-filters">
         <div class="segm">
-            <a class="<?= $toon === 'tekoop' ? 'actief' : '' ?>" href="galerij.php?toon=tekoop<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Te koop (<?= $aantalTeKoop ?>)</a>
+            <a class="<?= $toon === 'tekoop' ? 'actief' : '' ?>" href="galerij.php?toon=tekoop<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Te koop (<span id="cnt-tekoop"><?= $aantalTeKoop ?></span>)</a>
             <a class="<?= $toon === 'alles' ? 'actief' : '' ?>" href="galerij.php?toon=alles<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Alles</a>
-            <a class="<?= $toon === 'verkocht' ? 'actief' : '' ?>" href="galerij.php?toon=verkocht<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Verkocht (<?= $aantalVerkocht ?>)</a>
+            <a class="<?= $toon === 'verkocht' ? 'actief' : '' ?>" href="galerij.php?toon=verkocht<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Verkocht (<span id="cnt-verkocht"><?= $aantalVerkocht ?></span>)</a>
         </div>
-        <form method="get" action="galerij.php" style="display:flex;gap:8px;align-items:flex-end;background:none;box-shadow:none;padding:0;margin:0;border:0">
+        <form method="get" action="galerij.php" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;background:none;box-shadow:none;padding:0;margin:0;border:0">
             <input type="hidden" name="toon" value="<?= htmlspecialchars($toon) ?>">
             <select name="kleur" onchange="this.form.submit()">
                 <option value="">Alle kleuren</option>
@@ -195,10 +232,12 @@ function leerStaal(string $naam): string
         </form>
     </div>
 
-    <?php if (empty($items)): ?>
-        <div class="g-leeg">Geen samples gevonden<?= $toon === 'tekoop' ? ' die te koop zijn' : '' ?>. Pas de filters aan.</div>
-    <?php else: ?>
-        <div class="g-grid">
+    <div id="live-wissel">
+        <!--LIVE-GRID-BEGIN-->
+        <?php if (empty($items)): ?>
+            <div class="g-leeg">Geen samples gevonden<?= $toon === 'tekoop' ? ' die te koop zijn' : '' ?>. Pas de filters aan.</div>
+        <?php else: ?>
+            <section class="g-grid">
             <?php foreach ($items as $v): $k = $kenmerken[(int)$v['id']] ?? []; ?>
                 <?php
                     $staalKleur = '';
@@ -213,7 +252,19 @@ function leerStaal(string $naam): string
                     }
                 ?>
                 <div class="g-kaart">
-                    <div class="g-staal" style="<?= $staalKleur ? 'background:' . $staalKleur : 'background:var(--beige)' ?>"></div>
+                    <?php if (!empty($v['foto'])): ?>
+                        <div class="g-foto"><img src="<?= htmlspecialchars($v['foto']) ?>" alt="Foto van <?= htmlspecialchars(itemLabel($v)) ?>">
+                    <?php else: ?>
+                        <div class="g-staal" style="<?= $staalKleur ? 'background:' . $staalKleur : 'background:var(--beige)' ?>">
+                    <?php endif; ?>
+                        <form class="g-fotovorm" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="actie" value="foto">
+                            <input type="hidden" name="id" value="<?= (int)$v['id'] ?>">
+                            <label class="g-fotoknop" title="<?= empty($v['foto']) ? 'Foto toevoegen' : 'Foto vervangen' ?>"><?= empty($v['foto']) ? '📷 Foto' : '📷 Vervang' ?>
+                                <input type="file" name="foto" accept="image/*" onchange="this.form.submit()">
+                            </label>
+                        </form>
+                    </div>
                     <div class="g-lichaam">
                         <div class="g-code"><?= htmlspecialchars(itemLabel($v)) ?></div>
                         <?php if (!empty($k['Kleurcategorie'])): ?>
@@ -253,7 +304,59 @@ function leerStaal(string $naam): string
                     </div>
                 </div>
             <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+            </section>
+        <?php endif; ?>
+        <!--LIVE-GRID-EIND-->
+    </div>
+
+    <script src="live.js"></script>
+    <script>
+        (function () {
+            var wissel = document.getElementById('live-wissel');
+            var tel = document.getElementById('gal-tel');
+            var cntTk = document.getElementById('cnt-tekoop');
+            var cntVk = document.getElementById('cnt-verkocht');
+            if (!wissel) { return; }
+            var vorige = wissel.innerHTML;
+            var vorigeT = -1;
+            var vorigeV = -1;
+            livePoll(function () {
+                var q = new URLSearchParams(location.search);
+                q.set('deel', 'grid');
+                return 'galerij.php?' + q.toString();
+            }, function (d) {
+                if (!d || typeof d.html !== 'string') { return; }
+                if (d.html !== vorige) {
+                    vorige = d.html;
+                    wissel.innerHTML = d.html;
+                }
+                var t = typeof d.teKoop === 'number' ? d.teKoop : null;
+                var v = typeof d.verkocht === 'number' ? d.verkocht : null;
+                if (t !== null && t !== vorigeT) { vorigeT = t; if (cntTk) { cntTk.textContent = t; } }
+                if (v !== null && v !== vorigeV) { vorigeV = v; if (cntVk) { cntVk.textContent = v; } }
+                if (tel) {
+                    var nw = 'leersamples · ' + (t !== null ? t : vorigeT) + ' te koop · '
+                        + (v !== null ? v : vorigeV) + ' verkocht';
+                    if (tel.textContent !== nw) { tel.textContent = nw; }
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
+<?php
+if ($liveFragment) {
+    $helePagina = ob_get_clean();
+    $html = '';
+    if (preg_match('#(<!--LIVE-GRID-BEGIN-->.*?<!--LIVE-GRID-EIND-->)#s', $helePagina, $m)) {
+        $html = $m[1];
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'html' => $html,
+        'teKoop' => $aantalTeKoop,
+        'verkocht' => $aantalVerkocht,
+    ]);
+    exit;
+}
+?>

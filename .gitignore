@@ -3,3 +3,7 @@ src/db.local.php
 
 # Test-QR-plaatjes (lokale demo, horen niet in de app of repo)
 test-qr/
+
+# Geüploade productfoto's (worden via de app toegevoegd, horen niet in de repo)
+src/uploads/*
+!src/uploads/.gitkeep

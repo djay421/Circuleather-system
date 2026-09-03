@@ -85,10 +85,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $waarden = leesPostWaarden($criteria, $categorie, $_POST);
     $errors = array_merge($errors, valideerCriteriaWaarden($waarden, $criteria));
 
+    $fotoPad = null;
+    if (empty($errors) && $categorie === 'leersample' && !empty($_FILES['foto']['name'] ?? '')) {
+        [$fotoPad, $fout] = verwerkFotoUpload($_FILES['foto'] ?? []);
+        if ($fout) {
+            $errors[] = $fout;
+        }
+    }
+
     if (empty($errors)) {
         $stmt = $pdo->prepare(
-            'INSERT INTO voorraad (code, categorie, stad_id, bigbag_id, locatie, status, binnenkomst_datum)
-             VALUES (:code, :categorie, :stad_id, :bigbag_id, :locatie, :status, :binnenkomst_datum)'
+            'INSERT INTO voorraad (code, categorie, stad_id, bigbag_id, locatie, status, binnenkomst_datum, foto)
+             VALUES (:code, :categorie, :stad_id, :bigbag_id, :locatie, :status, :binnenkomst_datum, :foto)'
         );
         $stmt->execute([
             'code' => $input['code'] !== '' ? $input['code'] : null,
@@ -100,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'locatie' => $input['locatie'],
             'status' => $input['status'],
             'binnenkomst_datum' => $input['binnenkomst_datum'] !== '' ? $input['binnenkomst_datum'] : null,
+            'foto' => $fotoPad,
         ]);
         bewaarCriteriaWaarden($pdo, (int)$pdo->lastInsertId(), $waarden);
 
@@ -129,7 +138,7 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Circuleather — Voorraad toevoegen</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -146,7 +155,7 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
         </div>
     <?php endif; ?>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <label for="categorie">Categorie</label>
         <div class="radio-row">
             <label><input type="radio" name="categorie" value="bigbag" <?= $categorie === 'bigbag' ? 'checked' : '' ?> onchange="toonCategorie()"> Bigbag (heeft QR-code)</label>
@@ -189,6 +198,11 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
             <legend>Leersample</legend>
             <p class="meta">Leersamples worden handmatig geregistreerd met de selectiecriteria.
             Koppel ze aan de bigbag waar ze uit komen, zodat de herkomst bekend blijft.</p>
+
+            <label for="foto">Foto (optioneel)</label>
+            <input type="file" id="foto" name="foto" accept="image/*">
+            <p class="meta">Maak direct een foto met je telefooncamera of kies een bestaande
+            afbeelding (jpg/png/webp, max 10&nbsp;MB). De foto verschijnt in de galerij.</p>
 
             <label for="bigbag_id">Afkomstig uit bigbag (optioneel)</label>
             <select id="bigbag_id" name="bigbag_id">

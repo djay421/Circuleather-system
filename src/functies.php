@@ -267,3 +267,85 @@ function itemLabel(array $item): string
     }
     return ($item['categorie'] === 'bigbag' ? 'Bigbag' : 'Sample') . ' #' . $item['id'];
 }
+
+/** Kleur-hex voor een kleurcategorie-naam (kleurbolletje + staalvlak in de galerij). */
+function leerStaal(string $naam): string
+{
+    $kaart = [
+        'zwart' => '#26231f', 'wit' => '#f4f1e8', 'grijs' => '#8f8b84',
+        'bruin' => '#7c5232', 'beige' => '#d8c5a2', 'crème' => '#ece0c6',
+        'blauw' => '#41566e', 'groen' => '#59633e', 'rood' => '#8f3f2c',
+        'bordeaux' => '#5f2430', 'geel' => '#c9a23e', 'mosterd' => '#b08a2c',
+        'oranje' => '#b86a2f', 'roze' => '#c08a7d', 'paars' => '#5c4a6b',
+        'antraciet' => '#4a4a4c', 'naturel' => '#cbb088', 'goud' => '#b98d2e',
+    ];
+    foreach ($kaart as $sleutel => $hex) {
+        if (mb_stripos($naam, $sleutel) !== false) {
+            return $hex;
+        }
+    }
+    return '#b3a38c';
+}
+
+/**
+ * Slaat een geüploade afbeelding op in src/uploads/.
+ * Retourneert [relatief pad of null, fouttekst of null].
+ * Geen bestand meegegeven is geen fout: [null, null].
+ */
+function verwerkFotoUpload(array $bestand): array
+{
+    if (!isset($bestand['error'])) {
+        return [null, null];
+    }
+    if ((int)$bestand['error'] === UPLOAD_ERR_NO_FILE) {
+        return [null, null];
+    }
+    if ((int)$bestand['error'] !== UPLOAD_ERR_OK) {
+        return [null, 'Foto-upload mislukt (foutcode ' . (int)$bestand['error'] . ').'];
+    }
+    if ((int)($bestand['size'] ?? 0) > 10 * 1024 * 1024) {
+        return [null, 'Foto is groter dan 10 MB — kies een kleinere afbeelding.'];
+    }
+
+    $info = @getimagesize($bestand['tmp_name']);
+    if ($info === false) {
+        return [null, 'Het gekozen bestand is geen geldige afbeelding.'];
+    }
+    $toegestaan = [
+        IMAGETYPE_JPEG => 'jpg',
+        IMAGETYPE_PNG => 'png',
+        IMAGETYPE_GIF => 'gif',
+    ];
+    if (defined('IMAGETYPE_WEBP')) {
+        $toegestaan[IMAGETYPE_WEBP] = 'webp';
+    }
+    $ext = $toegestaan[$info[2]] ?? null;
+    if ($ext === null) {
+        return [null, 'Alleen JPG, PNG, WebP of GIF-afbeeldingen zijn toegestaan.'];
+    }
+
+    $map = __DIR__ . '/uploads';
+    if (!is_dir($map) && !@mkdir($map, 0775, true) && !is_dir($map)) {
+        return [null, 'De uploadmap bestaat niet en kon niet worden aangemaakt.'];
+    }
+    $naam = 'f_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    if (!@move_uploaded_file($bestand['tmp_name'], $map . '/' . $naam)) {
+        return [null, 'De foto kon niet worden opgeslagen.'];
+    }
+    return ['uploads/' . $naam, null];
+}
+
+/** Verwijdert een eerder opgeslagen fotobestand (alleen binnen de uploads-map). */
+function verwijderFotoBestand(?string $pad): void
+{
+    if ($pad === null || $pad === '') {
+        return;
+    }
+    $map = realpath(__DIR__ . '/uploads');
+    $doel = realpath(__DIR__ . '/' . $pad);
+    if ($map !== false && $doel !== false
+        && strncmp($doel, $map . DIRECTORY_SEPARATOR, strlen($map) + 1) === 0
+        && is_file($doel)) {
+        @unlink($doel);
+    }
+}

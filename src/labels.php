@@ -95,7 +95,7 @@ $geschiedenis = $pdo->query(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>QR-labels — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <style>
         .qr-aantal { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
         .qr-aantal label { margin: 0; }
