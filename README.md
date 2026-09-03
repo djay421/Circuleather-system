@@ -8,7 +8,8 @@ van circuleather.com (Poppins, zwart, koraalrood #f46152, “RE-❤ LEATHER”).
 
 Naast opslagregistratie bevat de app: een beveiligde login met
 tweestapsverificatie (Google Authenticator; verplicht voor beheerders),
-een verkoopgalerij voor leersamples, camera-scannen van bigbag-QR-codes
+een verkoopgalerij voor leersamples (met eigen foto's per stuk), tabs en
+filters op de voorraadpagina, camera-scannen van bigbag-QR-codes
 en een generator voor voorbedrukte zaklabels (alleen beheerder).
 
 ## Starten
@@ -44,7 +45,7 @@ docker compose up --build
 | `steden` | Herkomststeden van bigbags (Gouda, Breda, Almere), uitbreidbaar |
 | `criteria` | Selectiecriteria (beheerbaar in backend): label, toepassing (bigbag/leersample), soort (keuze/getal/tekst), eenheid, "meerdere ja/nee", volgorde |
 | `criteria_opties` | Keuzemogelijkheden per criterium |
-| `voorraad` | Eén rij per bigbag of leersample. **Bigbag**: unieke QR-code, herkomststad, datum, gewicht en inhoud. **Leersample**: geen QR — handmatig geregistreerd, optioneel gekoppeld aan de bigbag waar het uit komt via `bigbag_id` |
+| `voorraad` | Eén rij per bigbag of leersample. **Bigbag**: unieke QR-code, herkomststad, datum, gewicht en inhoud. **Leersample**: geen QR — handmatig geregistreerd, optioneel gekoppeld aan de bigbag waar het uit komt via `bigbag_id`. Kolom `foto` bevat een geüploade productfoto (bestand in `src/uploads/`) |
 | `voorraad_criteria` | Gekozen waarden per voorraad-item (optie en/of vrije waarde) |
 | `qr_labels` | Voorbedrukte bigbaglabels: welke codes al als label zijn gegenereerd, door wie en wanneer (voorkomt dubbele nummers). Een code komt pas in `voorraad` na scannen + registreren |
 | `gebruikers` | Accounts + rollen (admin/medewerker). Kolom `totp_secret` bevat het 2FA-geheim (Google Authenticator) |
@@ -75,8 +76,8 @@ zonder dat de applicatie herbouwd hoeft te worden.
 
 - `init.sql` — volledige database: schema + voorbeeldgegevens (steden, criteria, opties, gebruikers)
 - `src/` — de applicatie (platte PHP, geen framework)
-  - `index.php` voorraadoverzicht · `add.php`/`edit.php`/`delete.php` beheer
-  - `galerij.php` verkoopgalerij van leersamples (verkoop + ongedaan maken)
+  - `index.php` voorraadoverzicht met tabs (Alles/Bigbags/Leersamples) en filters
+  - `galerij.php` verkoopgalerij van leersamples (foto's, verkoop + ongedaan maken)
   - `scan.php` camera-scannen met QR/streepjescode
   - `labels.php` + `qrcode.min.js` QR-labels genereren (alleen beheerder)
   - `login.php`/`logout.php`/`auth.php` inloggen en rechten
@@ -84,8 +85,25 @@ zonder dat de applicatie herbouwd hoeft te worden.
   - `profile.php` "Mijn account" (2FA zelf regelen) · `users.php`/`user_edit.php` accountbeheer (admin)
   - `functies.php` gedeelde helpers (dynamische criteria) · `nav.php` navigatie
   - `style.css` + `fonts/` merkstijl (Poppins, kleuren van circuleather.com) · `db.php` databaseverbinding
+  - `uploads/` geüploade productfoto's (map wordt bijgehouden, staat in .gitignore)
   - `live.js` live-updates (pollen, geen herladen nodig)
 - `docker-compose.yml` + `Dockerfile` — lokale omgeving (Apache + PHP + MySQL + phpMyAdmin)
+
+## Voorraad: tabs en filters
+
+De pagina "Voorraad" heeft drie tabbladen: **Alles**, **Bigbags (n)** en
+**Leersamples (n)** — de aantallen worden live bijgewerkt. Per tab kun je
+filteren:
+
+- Bigbags: status, herkomststad, inhoud (leersample/restleer) en zoektekst.
+- Leersamples: status, kleurcategorie, formaat, geur en de andere
+  criteria die in de database staan — extra criteria die je later in de
+  backend toevoegt verschijnen dus automatisch als filter.
+- Het tabblad Alles biedt de gemeenschappelijke filters (status, stad, zoek).
+
+Bij elke leersample staat een **kleurbolletje** (de kleurcategorie van het
+stuk leer), zodat samples in één oogopslag herkenbaar zijn. De filters en
+tellingen werken ook op de live-update-fragmenten (zie hieronder).
 
 ## Live-updates (zonder herladen)
 
@@ -141,11 +159,18 @@ meteen het wachtwoord wijzigen via Medewerkers → Bewerken):
 
 ## Galerij en verkoop (leersamples)
 
-De pagina "Galerij" toont alle leersamples als verkoopkaarten: een
-kleurstaal op basis van de kleurcategorie, formaat, gewicht en andere
-criteria, plus de koppeling naar de herkomst-bigbag. Filters: Te koop /
-Alles / Verkocht, kleurcategorie en vrije zoektekst.
+De pagina "Galerij" toont alle leersamples als verkoopkaarten met een
+**foto van het stuk leer** (of bij ontbreken daarvan een kleurstaal op basis
+van de kleurcategorie), formaat, gewicht en andere criteria, plus de
+koppeling naar de herkomst-bigbag. Filters: Te koop / Alles / Verkocht,
+kleurcategorie en vrije zoektekst.
 
+- **Foto's**: voeg bij het registreren ("+ Leersample toevoegen") of via
+  Bewerken een foto toe — op je telefoon kun je direct met de camera een
+  foto maken. Ook staat op elke galerijkaart een klein knopje
+  ("📷 Foto" / "📷 Vervang") om ter plekke een foto te maken of te
+  vervangen; foto's worden opgeslagen in `src/uploads/` en bij vervangen/
+  verwijderen opgeruimd.
 - **Verkoop**: op een te-koop-sample druk je op "Verkoop" — de sample wordt
   `verkocht` en verdwijnt uit de te-koop-lijst; de actie (wie, wanneer,
   welke sample) wordt vastgelegd in de tabel `verkopen` (basis voor een

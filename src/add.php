@@ -8,15 +8,19 @@ $steden = haalSteden($pdo);
 $bigbags = haalBigbags($pdo);
 
 $errors = [];
+// Of dit formulier vanuit de scanpagina is geopend (add.php?code=...):
+// alleen dan gaan we na het opslaan terug naar de scanpagina.
+$vanuitScan = trim((string)($_GET['code'] ?? '')) !== '';
+
 $input = [
     'code' => trim((string)($_GET['code'] ?? '')),
     'categorie' => $_GET['categorie'] ?? 'leersample',
-    'locatie' => '',
-    'status' => 'beschikbaar',
-    'stad_id' => '',
-    'binnenkomst_datum' => '',
-    'bigbag_id' => trim((string)($_GET['bigbag_id'] ?? '')),
-];
+        'locatie' => '',
+        'status' => 'beschikbaar',
+        'stad_id' => '',
+        'binnenkomst_datum' => '',
+        'bigbag_id' => trim((string)($_GET['bigbag_id'] ?? '')),
+    ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($input as $key => $default) {
@@ -112,18 +116,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         bewaarCriteriaWaarden($pdo, (int)$pdo->lastInsertId(), $waarden);
 
-        // Na het registreren terug naar het item (scan-aanzicht) zodat je
-        // de gescande code direct bevestigd ziet.
-        $doel = 'index.php?msg=added';
-        if ($categorie === 'leersample' && $input['bigbag_id'] !== '') {
-            $stmt = $pdo->prepare('SELECT code FROM voorraad WHERE id = ?');
-            $stmt->execute([(int)$input['bigbag_id']]);
-            $bagCode = $stmt->fetchColumn();
-            if ($bagCode) {
-                $doel = 'scan.php?code=' . rawurlencode($bagCode);
-            }
-        } elseif ($input['code'] !== '') {
+        // Terug naar waar je vandaan kwam:
+        //  * handmatig toevoegen (via de voorraadpagina) -> terug naar de voorraadlijst;
+        //  * registreren ná een scan (add.php?code=...) -> terug naar de scanpagina,
+        //    zodat je direct bevestigd ziet dat de gescande code nu geregistreerd is.
+        // Scannen is dus nooit verplicht: de code van een bigbag kun je ook gewoon
+        // intypen bij het toevoegen.
+        if ($categorie === 'bigbag' && $vanuitScan && $input['code'] !== '') {
             $doel = 'scan.php?code=' . rawurlencode($input['code']);
+        } else {
+            $doel = 'index.php?soort=' . $categorie . '&msg=added';
         }
         header('Location: ' . $doel);
         exit;
