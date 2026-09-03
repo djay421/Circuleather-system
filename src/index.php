@@ -65,8 +65,8 @@ foreach ($filterKeuze as $cid => $waarde) {
         continue;
     }
     $where[] = 'EXISTS (SELECT 1 FROM voorraad_criteria vf
-                JOIN criteria_opties of ON of.id = vf.optie_id
-                WHERE vf.voorraad_id = v.id AND vf.criterium_id = ? AND of.waarde = ?)';
+                JOIN criteria_opties fo ON fo.id = vf.optie_id
+                WHERE vf.voorraad_id = v.id AND vf.criterium_id = ? AND fo.waarde = ?)';
     $params[] = $cid;
     $params[] = $waarde;
 }
