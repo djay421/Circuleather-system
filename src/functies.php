@@ -1,0 +1,269 @@
+<?php
+// Gedeelde helpers voor het dynamische criteria-systeem (Circuleather).
+// Criteria en hun keuzes worden uit de database gelezen, zodat ze in de
+// backend kunnen worden uitgebreid of aangepast zonder code aan te passen.
+
+require_once __DIR__ . '/db.php';
+
+const CATEGORIEEN = ['bigbag', 'leersample'];
+const STATUSSEX = ['beschikbaar', 'gereserveerd', 'in_bewerking', 'verkocht'];
+
+/** Alle actieve criteria met hun keuzemogelijkheden, gesorteerd. */
+function haalCriteria(PDO $pdo): array
+{
+    $stmt = $pdo->query(
+        'SELECT id, label, toepassing, soort, eenheid, meerdere_waarden
+         FROM criteria WHERE actief = 1
+         ORDER BY toepassing, volgorde, id'
+    );
+    $criteria = [];
+    foreach ($stmt->fetchAll() as $c) {
+        $criteria[(int)$c['id']] = [
+            'id'         => (int)$c['id'],
+            'label'      => $c['label'],
+            'toepassing' => $c['toepassing'],
+            'soort'      => $c['soort'],
+            'eenheid'    => $c['eenheid'],
+            'meerdere'   => (bool)$c['meerdere_waarden'],
+            'opties'     => [],
+        ];
+    }
+    if ($criteria) {
+        $in = implode(',', array_keys($criteria));
+        $stmt = $pdo->query(
+            "SELECT id, criterium_id, waarde FROM criteria_opties
+             WHERE actief = 1 AND criterium_id IN ($in)
+             ORDER BY volgorde, id"
+        );
+        foreach ($stmt->fetchAll() as $o) {
+            $criteria[(int)$o['criterium_id']]['opties'][] = [
+                'id' => (int)$o['id'],
+                'waarde' => $o['waarde'],
+            ];
+        }
+    }
+    return $criteria;
+}
+
+/** Alleen de criteria die gelden voor de opgegeven categorie. */
+function criteriaVoor(array $criteria, string $toepassing): array
+{
+    return array_filter($criteria, fn ($c) => $c['toepassing'] === $toepassing);
+}
+
+/**
+ * Opgeslagen criteria-waarden van één item.
+ * Retourneert: criterium_id => ['opties' => [optie_id, ...], 'vrij' => 'waarde'].
+ */
+function haalWaardenVoorItem(PDO $pdo, int $itemId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT criterium_id, optie_id, waarde_vrij FROM voorraad_criteria WHERE voorraad_id = ?'
+    );
+    $stmt->execute([$itemId]);
+    $uitkomst = [];
+    foreach ($stmt->fetchAll() as $r) {
+        $id = (int)$r['criterium_id'];
+        if (!isset($uitkomst[$id])) {
+            $uitkomst[$id] = ['opties' => [], 'vrij' => ''];
+        }
+        if ($r['optie_id'] !== null) {
+            $uitkomst[$id]['opties'][] = (int)$r['optie_id'];
+        }
+        if ($r['waarde_vrij'] !== null && $r['waarde_vrij'] !== '') {
+            $uitkomst[$id]['vrij'] = $r['waarde_vrij'];
+        }
+    }
+    return $uitkomst;
+}
+
+/** Veldwaarden uit POST, geordend naar criterium: id => ['opties'=>[], 'vrij'=>string]. */
+function leesPostWaarden(array $criteria, string $toepassing, array $post): array
+{
+    $waarden = [];
+    foreach (criteriaVoor($criteria, $toepassing) as $c) {
+        $cid = $c['id'];
+        $opties = [];
+        if ($c['soort'] === 'keuze') {
+            $geldig = array_map(fn ($o) => $o['id'], $c['opties']);
+            if ($c['meerdere']) {
+                foreach (($post["crit_{$cid}_opties"] ?? []) as $o) {
+                    $o = (int)$o;
+                    if (in_array($o, $geldig, true)) {
+                        $opties[] = $o;
+                    }
+                }
+            } else {
+                $o = (int)($post["crit_{$cid}_optie"] ?? 0);
+                if (in_array($o, $geldig, true)) {
+                    $opties[] = $o;
+                }
+            }
+        }
+        $vrij = trim((string)($post["crit_{$cid}_vrij"] ?? ''));
+        if ($c['soort'] === 'getal') {
+            $vrij = str_replace(',', '.', $vrij); // Nederlandse decimale komma
+        }
+        $waarden[$cid] = ['opties' => array_values(array_unique($opties)), 'vrij' => $vrij];
+    }
+    return $waarden;
+}
+
+/**
+ * Overschrijft alle criteria-waarden van een item met de meegegeven waarden
+ * (oudere waarden worden eerst verwijderd).
+ */
+function bewaarCriteriaWaarden(PDO $pdo, int $itemId, array $waarden): void
+{
+    $del = $pdo->prepare('DELETE FROM voorraad_criteria WHERE voorraad_id = ?');
+    $del->execute([$itemId]);
+
+    $ins = $pdo->prepare(
+        'INSERT INTO voorraad_criteria (voorraad_id, criterium_id, optie_id, waarde_vrij)
+         VALUES (?, ?, ?, ?)'
+    );
+    foreach ($waarden as $criteriumId => $w) {
+        foreach ($w['opties'] as $optieId) {
+            $ins->execute([$itemId, $criteriumId, $optieId, null]);
+        }
+        if ($w['vrij'] !== '') {
+            $ins->execute([$itemId, $criteriumId, null, mb_substr($w['vrij'], 0, 255)]);
+        }
+    }
+}
+
+/** Geeft de foutmeldingen terug voor een ingevulde criteria-set. */
+function valideerCriteriaWaarden(array $waarden, array $criteria): array
+{
+    $errors = [];
+    foreach ($waarden as $criteriumId => $w) {
+        if (!isset($criteria[$criteriumId])) {
+            continue;
+        }
+        $c = $criteria[$criteriumId];
+        if ($c['soort'] === 'getal' && $w['vrij'] !== '' && !is_numeric($w['vrij'])) {
+            $errors[] = 'Veld "' . $c['label'] . '" moet een getal zijn.';
+        }
+    }
+    return $errors;
+}
+
+/** Tekent de invoervelden voor één categorie (bigbag of leersample). */
+function toonCriteriaVelden(array $criteria, string $toepassing, array $waarden = []): void
+{
+    foreach (criteriaVoor($criteria, $toepassing) as $c) {
+        $cid = $c['id'];
+        $w = $waarden[$cid] ?? ['opties' => [], 'vrij' => ''];
+        $eenheid = $c['eenheid'] ? ' (' . htmlspecialchars($c['eenheid']) . ')' : '';
+
+        echo '<div class="veld">';
+        echo '<label for="crit_' . $cid . '">' . htmlspecialchars($c['label']) . $eenheid;
+        if ($c['meerdere']) {
+            echo ' <span class="hint">(meerdere mogelijk)</span>';
+        }
+        echo '</label>';
+
+        if ($c['soort'] === 'keuze') {
+            if ($c['meerdere']) {
+                foreach ($c['opties'] as $o) {
+                    $checked = in_array($o['id'], $w['opties'], true) ? ' checked' : '';
+                    echo '<label class="optie"><input type="checkbox" name="crit_' . $cid
+                        . '_opties[]" value="' . $o['id'] . '"' . $checked . '> '
+                        . htmlspecialchars($o['waarde']) . '</label>';
+                }
+            } else {
+                echo '<select id="crit_' . $cid . '" name="crit_' . $cid . '_optie">';
+                echo '<option value="">— kies —</option>';
+                foreach ($c['opties'] as $o) {
+                    $selected = in_array($o['id'], $w['opties'], true) ? ' selected' : '';
+                    echo '<option value="' . $o['id'] . '"' . $selected . '>'
+                        . htmlspecialchars($o['waarde']) . '</option>';
+                }
+                echo '</select>';
+            }
+        } elseif ($c['soort'] === 'getal') {
+            echo '<input type="number" step="any" min="0" id="crit_' . $cid
+                . '" name="crit_' . $cid . '_vrij" value="' . htmlspecialchars($w['vrij']) . '">';
+        } else {
+            echo '<input type="text" id="crit_' . $cid . '" name="crit_' . $cid
+                . '_vrij" value="' . htmlspecialchars($w['vrij']) . '">';
+        }
+        echo '</div>';
+    }
+}
+
+/** Alle steden als [id => naam]. */
+function haalSteden(PDO $pdo): array
+{
+    $steden = [];
+    foreach ($pdo->query('SELECT id, naam FROM steden WHERE actief = 1 ORDER BY naam') as $r) {
+        $steden[(int)$r['id']] = $r['naam'];
+    }
+    return $steden;
+}
+
+/**
+ * Criteria-kenmerken van één of meerdere items, klaar voor weergave:
+ * [itemId => [label => [waarde-tekst, ...]]].
+ */
+function haalKenmerken(PDO $pdo, array $itemIds): array
+{
+    $itemIds = array_values(array_unique(array_filter(array_map('intval', $itemIds))));
+    $resultaat = [];
+    if (!$itemIds) {
+        return $resultaat;
+    }
+
+    $in = implode(',', $itemIds);
+    $rows = $pdo->query(
+        "SELECT vc.voorraad_id, vc.waarde_vrij, c.label, c.eenheid, co.waarde AS optie_waarde
+         FROM voorraad_criteria vc
+         JOIN criteria c ON c.id = vc.criterium_id
+         LEFT JOIN criteria_opties co ON co.id = vc.optie_id
+         WHERE vc.voorraad_id IN ($in)
+         ORDER BY c.volgorde, vc.id"
+    )->fetchAll();
+
+    foreach ($rows as $r) {
+        $tekst = $r['optie_waarde'] !== null ? $r['optie_waarde'] : trim((string)$r['waarde_vrij']);
+        if ($tekst === '') {
+            continue;
+        }
+        if ($r['eenheid']) {
+            $tekst .= ' ' . $r['eenheid'];
+        }
+        $resultaat[(int)$r['voorraad_id']][$r['label']][] = $tekst;
+    }
+    return $resultaat;
+}
+
+/** Bigbags voor het koppelen van leersamples: [id => label]. */
+function haalBigbags(PDO $pdo): array
+{
+    $bigbags = [];
+    $rows = $pdo->query(
+        "SELECT v.id, v.code, v.binnenkomst_datum, s.naam AS stad_naam
+         FROM voorraad v
+         LEFT JOIN steden s ON s.id = v.stad_id
+         WHERE v.categorie = 'bigbag'
+         ORDER BY v.aangemaakt_op DESC, v.id DESC"
+    )->fetchAll();
+    foreach ($rows as $r) {
+        $delen = array_filter([
+            $r['code'],
+            $r['stad_naam'],
+            $r['binnenkomst_datum'],
+        ], fn ($d) => $d !== null && $d !== '');
+        $bigbags[(int)$r['id']] = implode(' — ', $delen);
+    }
+    return $bigbags;
+}
+
+/** Weergavenaam van een voorraad-item (code, of automatisch nummer). */
+function itemLabel(array $item): string
+{
+    if ($item['code'] !== null && $item['code'] !== '') {
+        return $item['code'];
+    }
+    return ($item['categorie'] === 'bigbag' ? 'Bigbag' : 'Sample') . ' #' . $item['id'];
+}

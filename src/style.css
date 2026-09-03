@@ -1,0 +1,374 @@
+/* ============================================================
+   Circuleather leeropslag — vormgeving
+   Gebaseerd op de merkstijl van circuleather.com:
+   Poppins-typografie, zwart, koraalrood accent (#f46152),
+   "RE-❤ LEATHER". Mobiel-eerst.
+   ============================================================ */
+@font-face {
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/poppins-400.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("fonts/poppins-600.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Poppins";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("fonts/poppins-700.woff2") format("woff2");
+}
+
+:root {
+    --crème: #f6f5f1;       /* pagina-achtergrond */
+    --wit: #ffffff;         /* kaarten */
+    --ink: #1a1917;         /* tekst */
+    --mild: #6f6c63;        /* secundaire tekst */
+    --bruin: #171717;       /* donker: kopjes / koppen */
+    --leer: #f46152;        /* accent (koraal) */
+    --leer-donker: #d9483a; /* accent hover */
+    --beige: #efe9de;       /* lichte hover-vlakken */
+    --lijn: #e2ddd2;        /* randen */
+    --groen: #3f6b3a;
+    --rood: #a03a2a;
+    --schaduw: 0 8px 26px rgba(23, 23, 23, .09);
+    --radius: 16px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: clamp(10px, 2.5vw, 30px);
+    background: var(--crème);
+    color: var(--ink);
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.55;
+}
+h1, h2 {
+    font-family: "Poppins", system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--bruin);
+    line-height: 1.12;
+    letter-spacing: .01em;
+}
+h1 { font-size: clamp(23px, 5.5vw, 34px); text-transform: uppercase; margin: .15em 0 .35em; }
+h1 small {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--leer-donker);
+    margin-top: 5px;
+}
+h2 { font-size: clamp(18px, 3.4vw, 23px); text-transform: uppercase; margin: .45em 0 .5em; }
+a { color: var(--leer-donker); }
+.back-link { display: inline-block; margin: 4px 0 12px; font-weight: 600; text-decoration: none; font-size: 14px; }
+.back-link:hover { text-decoration: underline; }
+
+/* --- Header / navigatie --- */
+.sitekop {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--lijn);
+}
+.sitekop .merk {
+    font-family: "Poppins", sans-serif;
+    font-size: clamp(18px, 4vw, 23px);
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--bruin);
+    text-decoration: none;
+    line-height: 1;
+}
+.sitekop .merk .tagline {
+    display: block;
+    font-family: "Poppins", sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--leer-donker);
+    margin-top: 4px;
+}
+.topnav { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; flex: 1 1 320px; }
+.topnav a {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 8px 13px;
+    border-radius: 999px;
+}
+.topnav a:hover { background: var(--beige); }
+.topnav .uitloggen { color: var(--rood); }
+.topnav .gebruiker {
+    margin-left: auto;
+    color: var(--mild);
+    font-size: 12.5px;
+    padding: 6px 8px;
+    white-space: nowrap;
+}
+.topnav .gebruiker:hover { background: transparent; text-decoration: underline; }
+
+/* --- Knoppen --- */
+.knoppen { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+.knoppen a, .knoppen button,
+button, .handmatig button {
+    display: inline-block;
+    padding: 11px 20px;
+    background: var(--leer);
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.knoppen a:hover, .knoppen button:hover, button:hover { background: var(--leer-donker); }
+.knoppen a.secondary, .knoppen button.secondary {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.knoppen a.secondary:hover, .knoppen button.secondary:hover { background: var(--beige); }
+button[type="submit"] { margin-top: 18px; width: 100%; }
+form .knoppen button[type="submit"] { margin-top: 0; width: auto; }
+@media (min-width: 640px) {
+    button[type="submit"] { width: auto; min-width: 200px; }
+    .knoppen a, .knoppen button { flex: 0 0 auto; }
+}
+
+/* --- Meldingen --- */
+.msg, .fout { padding: 12px 16px; border-radius: 12px; margin: 10px 0 14px; font-size: 14px; }
+.msg { background: #e5efdf; border: 1px solid #c2d5b3; color: var(--groen); }
+.fout { background: #f7e2dc; border: 1px solid #e4b4a8; color: var(--rood); }
+.errors {
+    background: #f7e2dc; border: 1px solid #e4b4a8; color: var(--rood);
+    padding: 12px 16px; border-radius: 12px; margin: 10px 0 14px; font-size: 14px;
+}
+.errors ul, .fout ul { margin: 0; padding-left: 20px; }
+
+/* --- Tabellen / kaarten --- */
+table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--wit); border: 1px solid var(--lijn); border-radius: var(--radius); overflow: hidden; }
+th {
+    background: var(--bruin);
+    color: #fff;
+    text-align: left;
+    font-size: 11.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 11px 14px;
+    white-space: nowrap;
+}
+td { padding: 11px 14px; border-top: 1px solid var(--lijn); font-size: 14px; vertical-align: top; }
+tbody tr:nth-child(even) td { background: #fbf8f2; }
+td.kenmerken { color: var(--mild); font-size: 13px; }
+td.kenmerken strong { color: var(--ink); }
+td.acties { white-space: nowrap; }
+td.acties a { font-weight: 600; margin-right: 10px; text-decoration: none; }
+td.acties a.wissen { color: var(--rood); }
+.lege-tabel { text-align: center; color: var(--mild); padding: 30px !important; }
+.inactief { color: var(--mild); }
+
+/* Mobiel: rijen als kaarten */
+@media (max-width: 760px) {
+    table, tbody, tr { display: block; width: 100%; }
+    thead { display: none; }
+    table { border: 0; background: transparent; }
+    tr {
+        background: var(--wit);
+        border: 1px solid var(--lijn);
+        border-radius: var(--radius);
+        padding: 6px 4px;
+        margin-bottom: 12px;
+        box-shadow: var(--schaduw);
+    }
+    td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 14px;
+        border: 0;
+        border-bottom: 1px dashed var(--lijn);
+        padding: 9px 12px;
+    }
+    td:last-child { border-bottom: 0; }
+    td::before {
+        content: attr(data-label);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--mild);
+        flex: 0 0 auto;
+    }
+    td.kenmerken, td.acties { display: flex; flex-direction: column; align-items: stretch; }
+    td.kenmerken::before, td.acties::before { margin-bottom: 4px; }
+    td.kenmerken div, td.acties a { flex: none; }
+    td.acties a {
+        display: block;
+        text-align: center;
+        margin: 4px 0 0;
+        padding: 10px;
+        background: var(--beige);
+        color: var(--ink);
+        border-radius: 10px;
+    }
+    td.acties a.wissen { background: #f3dcd5; color: var(--rood); }
+    .lege-tabel { display: block; }
+}
+
+/* --- Badges --- */
+.badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.badge.beschikbaar { background: #e0ecda; color: #35602f; }
+.badge.gereserveerd { background: #f6e9c6; color: #8a6414; }
+.badge.in_bewerking { background: #e0e8f4; color: #2c538c; }
+.badge.verkocht { background: #e9e6df; color: #57534a; }
+.badge.admin { background: var(--bruin); color: #fff; }
+.badge.medewerker { background: #e0e8f4; color: #2c538c; }
+
+/* --- Formulieren --- */
+form { background: var(--wit); padding: clamp(14px, 3vw, 26px); border-radius: var(--radius); box-shadow: var(--schaduw); max-width: 640px; }
+label { display: block; margin-top: 14px; font-weight: 600; font-size: 13.5px; letter-spacing: .01em; }
+input[type="text"], input[type="email"], input[type="password"], input[type="search"],
+input[type="number"], input[type="date"], select, textarea {
+    width: 100%;
+    margin-top: 5px;
+    padding: 11px 13px;
+    background: #fff;
+    border: 1.5px solid #d6d0c2;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--ink);
+}
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--leer);
+    outline-offset: 1px;
+    border-color: var(--leer);
+}
+select { appearance: auto; }
+.radio-row { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 6px; }
+@media (min-width: 480px) { .radio-row { grid-template-columns: 1fr 1fr; } }
+.radio-row label {
+    margin: 0;
+    padding: 12px 14px;
+    border: 1.5px solid var(--lijn);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--bruin);
+}
+.radio-row label:has(input:checked) {
+    border-color: var(--leer);
+    background: var(--beige);
+    box-shadow: inset 0 0 0 1px var(--leer);
+}
+.checkbox-rij { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-weight: 600; }
+.checkbox-rij input { width: 20px; height: 20px; accent-color: var(--leer); }
+label.optie { display: inline-block; margin: 6px 16px 0 0; font-weight: 400; font-size: 14.5px; }
+fieldset {
+    margin-top: 16px;
+    border: 1px solid var(--lijn);
+    background: #fbf8f2;
+    border-radius: 14px;
+    padding: 12px 16px 18px;
+}
+legend { font-weight: 700; color: var(--bruin); padding: 0 8px; letter-spacing: .02em; }
+.hint { color: var(--mild); font-weight: 400; font-size: 12px; }
+.meta { color: var(--mild); font-size: 13px; margin: 4px 0 10px; }
+code { background: var(--beige); padding: 1px 7px; border-radius: 6px; font-size: .92em; }
+
+/* --- Scanner --- */
+body.smal { max-width: 760px; }
+.viewfinder { background: #000; border-radius: var(--radius); overflow: hidden; }
+.viewfinder video { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.scan-status { padding: 11px 16px; font-size: 14px; color: var(--mild); background: var(--wit); border: 1px solid var(--lijn); border-top: 0; }
+.handmatig { display: flex; gap: 8px; margin-top: 14px; }
+.handmatig input { flex: 1; margin-top: 0; }
+.handmatig button { margin-top: 0; white-space: nowrap; }
+.kaart {
+    background: var(--wit);
+    border: 1px solid var(--lijn);
+    border-radius: var(--radius);
+    padding: clamp(14px, 3vw, 24px);
+    margin: 14px 0;
+    box-shadow: var(--schaduw);
+}
+.kaart h2 { margin: 0 0 10px; }
+.kaart dl { margin: 6px 0; }
+.kaart dt {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--mild);
+    margin-top: 12px;
+}
+.kaart dd { margin: 2px 0 0; }
+.kaart ul { padding-left: 22px; margin: 8px 0; }
+.kaart li { margin: 6px 0; }
+.kaart form { background: transparent; box-shadow: none; padding: 0; margin-top: 6px; max-width: none; }
+.kaart .knoppen { margin-top: 16px; }
+.kaart .knoppen a, .kaart .knoppen button { flex: 1 1 100%; text-align: center; }
+@media (min-width: 560px) { .kaart .knoppen a, .kaart .knoppen button { flex: 0 0 auto; } }
+
+/* --- Inloggen / 2FA (donkere merkachtergrond, zoals de hero van circuleather.com) --- */
+body.login-pagina {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    max-width: none;
+    padding: 18px;
+    background:
+        radial-gradient(900px 500px at 12% 8%, rgba(244, 97, 82, .16), transparent 60%),
+        radial-gradient(800px 600px at 90% 95%, rgba(255, 255, 255, .06), transparent 55%),
+        #17140f;
+}
+.login-box {
+    background: var(--wit);
+    padding: clamp(22px, 5vw, 34px);
+    border-radius: 20px;
+    max-width: 430px;
+    width: 100%;
+    box-shadow: 0 22px 60px rgba(0, 0, 0, .4);
+    border: 1px solid rgba(255, 255, 255, .5);
+}
+.login-box h1 { font-size: 24px; margin: 0 0 8px; }
+.login-box form { background: transparent; box-shadow: none; padding: 0; max-width: none; }
+.login-box button { margin-top: 18px; }
+.login-box .voetnoot { color: var(--mild); font-size: 12.5px; margin-top: 18px; text-align: center; }
+.login-box .voetnoot a { text-decoration: none; }
+.login-merk { text-align: center; margin-bottom: 16px; }
+.login-merk .circu { font-weight: 700; font-size: 19px; letter-spacing: .04em; text-transform: uppercase; }
+.login-merk .tagline { font-size: 10px; letter-spacing: .34em; text-transform: uppercase; color: var(--mild); margin-top: 2px; }
+.login-merk .hart { color: var(--leer); }

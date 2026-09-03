@@ -1,48 +1,90 @@
-<?php require 'db.php'; ?>
+<?php
+require 'auth.php';
+vereisLogin();
+require 'functies.php';
+
+$berichten = [
+    'added' => 'Voorraad toegevoegd.',
+    'updated' => 'Voorraad bijgewerkt.',
+    'deleted' => 'Voorraad verwijderd.',
+];
+$msg = $_GET['msg'] ?? '';
+
+$items = $pdo->query(
+    'SELECT v.*, s.naam AS stad_naam, b.code AS bigbag_code
+     FROM voorraad v
+     LEFT JOIN steden s ON s.id = v.stad_id
+     LEFT JOIN voorraad b ON b.id = v.bigbag_id
+     ORDER BY v.aangemaakt_op DESC, v.id DESC'
+)->fetchAll();
+$kenmerken = haalKenmerken($pdo, array_map(fn ($i) => (int)$i['id'], $items));
+?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Circuleather</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; background: #f7f7f5; color: #222; }
-        h1 { color: #3a2e26; }
-        table { border-collapse: collapse; width: 100%; background: #fff; }
-        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
-        th { background: #3a2e26; color: #fff; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Circuleather — Voorraad</title>
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
-    <h1>Circuleather</h1>
-    <p>Verbonden met database: <strong><?= htmlspecialchars(getenv('DB_NAME') ?: 'circuleather_crm') ?></strong></p>
+    <?php include 'nav.php'; ?>
+    <h1>Voorraad <small><?= count($items) ?> items</small></h1>
 
-    <button onclick="window.location.href='add.php'">Nieuwe voorraad toevoegen</button>
+    <?php if (isset($berichten[$msg])): ?>
+        <div class="msg"><?= htmlspecialchars($berichten[$msg]) ?></div>
+    <?php endif; ?>
 
-    <button onclick="window.location.href=''">Voorraad verwijderen</button>
+    <div class="knoppen">
+        <a href="add.php?categorie=bigbag">+ Bigbag toevoegen</a>
+        <a href="add.php?categorie=leersample" class="secondary">+ Leersample toevoegen</a>
+        <a href="scan.php" class="secondary">📷 Scan met camera</a>
+    </div>
 
-    <button onclick="window.location.href=''">Voorraad aanpassen</button>
-
-    <h2>Voorraad</h2>
-    <?php
-    $stmt = $pdo->query("SELECT * FROM voorraad ORDER BY aangemaakt_op DESC");
-    $voorraad = $stmt->fetchAll();
-    ?>
     <table>
-        <tr><th>ID</th><th>Partij-code</th><th>Locatie</th><th>Gewicht (kg)</th><th>Kleur</th><th>Breedte (cm)</th><th>Lengte (cm)</th><th>Status</th></tr>
-        <?php if (empty($voorraad)): ?>
-            <tr><td colspan="8">Nog geen voorraad toegevoegd.</td></tr>
-        <?php else: foreach ($voorraad as $v): ?>
+        <thead>
             <tr>
-                <td><?= $v['id'] ?></td>
-                <td><?= htmlspecialchars($v['partij-code']) ?></td>
-                <td><?= htmlspecialchars($v['locatie']) ?></td>
-                <td><?= htmlspecialchars($v['gewicht (kg)']) ?></td>
-                <td><?= htmlspecialchars($v['kleur']) ?></td>
-                <td><?= htmlspecialchars($v['breedte (cm)']) ?></td>
-                <td><?= htmlspecialchars($v['lengte (cm)']) ?></td>
-                <td><?= htmlspecialchars($v['status']) ?></td>
+                <th>Code</th>
+                <th>Categorie</th>
+                <th>Herkomst</th>
+                <th>Locatie</th>
+                <th>Kenmerken</th>
+                <th>Status</th>
+                <th>Acties</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php if (empty($items)): ?>
+            <tr><td colspan="7" class="lege-tabel">Nog geen voorraad toegevoegd.</td></tr>
+        <?php else: foreach ($items as $v): $itemKenmerken = $kenmerken[(int)$v['id']] ?? []; ?>
+            <tr>
+                <td data-label="Code"><?= htmlspecialchars(itemLabel($v)) ?></td>
+                <td data-label="Categorie"><?= htmlspecialchars($v['categorie']) ?></td>
+                <td data-label="Herkomst"><?php
+                    if ($v['categorie'] === 'bigbag') {
+                        echo $v['stad_naam'] ? htmlspecialchars($v['stad_naam']) : '—';
+                    } else {
+                        echo $v['bigbag_code'] ? 'Uit: ' . htmlspecialchars($v['bigbag_code']) : '—';
+                    }
+                ?></td>
+                <td data-label="Locatie"><?= $v['locatie'] ? htmlspecialchars($v['locatie']) : '—' ?></td>
+                <td class="kenmerken" data-label="Kenmerken">
+                    <?php if (empty($itemKenmerken)): ?>
+                        <em>geen criteria ingevuld</em>
+                    <?php else: foreach ($itemKenmerken as $label => $teksten): ?>
+                        <div><strong><?= htmlspecialchars($label) ?>:</strong>
+                            <?= htmlspecialchars(implode(', ', $teksten)) ?></div>
+                    <?php endforeach; endif; ?>
+                </td>
+                <td data-label="Status"><span class="badge <?= htmlspecialchars($v['status']) ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $v['status']))) ?></span></td>
+                <td class="acties" data-label="Acties">
+                    <a href="edit.php?id=<?= (int)$v['id'] ?>">Bewerken</a>
+                    <a class="wissen" href="delete.php?id=<?= (int)$v['id'] ?>"
+                       onclick="return confirm('Weet je zeker dat je deze voorraad wilt verwijderen?');">Verwijderen</a>
+                </td>
             </tr>
         <?php endforeach; endif; ?>
+        </tbody>
     </table>
 </body>
 </html>

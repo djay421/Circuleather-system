@@ -1,5 +1,6 @@
 <?php
-require 'db.php';
+require 'auth.php';
+vereisLogin();
 
 $id = (int)($_GET['id'] ?? 0);
 
