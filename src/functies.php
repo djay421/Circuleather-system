@@ -349,3 +349,133 @@ function verwijderFotoBestand(?string $pad): void
         @unlink($doel);
     }
 }
+
+/* --- Logboek (audit-log) --- */
+
+/** Het IP-adres van de huidige aanvraag. */
+function ipAdres(): string
+{
+    return (string)($_SERVER['REMOTE_ADDR'] ?? '');
+}
+
+/** Een korte, leesbare omschrijving van het huidige apparaat (bijv. "iPhone · Safari"). */
+function apparaatLabel(): string
+{
+    $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+    $apparaat = 'Onbekend apparaat';
+    if (stripos($ua, 'iPhone') !== false) {
+        $apparaat = 'iPhone';
+    } elseif (stripos($ua, 'iPad') !== false) {
+        $apparaat = 'iPad';
+    } elseif (stripos($ua, 'Android') !== false) {
+        $apparaat = stripos($ua, 'Mobile') !== false ? 'Android-telefoon' : 'Android-tablet';
+    } elseif (stripos($ua, 'Windows') !== false) {
+        $apparaat = 'Windows';
+    } elseif (stripos($ua, 'Macintosh') !== false) {
+        $apparaat = 'Mac';
+    } elseif (stripos($ua, 'Linux') !== false) {
+        $apparaat = 'Linux';
+    }
+    $browser = 'Browser';
+    if (stripos($ua, 'Edg/') !== false) {
+        $browser = 'Edge';
+    } elseif (stripos($ua, 'Chrome') !== false) {
+        $browser = 'Chrome';
+    } elseif (stripos($ua, 'Firefox') !== false) {
+        $browser = 'Firefox';
+    } elseif (stripos($ua, 'Safari') !== false) {
+        $browser = 'Safari';
+    }
+    return $apparaat . ' · ' . $browser;
+}
+
+/**
+ * Schrijft een regel naar het logboek (wie, wat, wanneer, vanaf welk apparaat).
+ * Werkt ook zonder ingelogde gebruiker (bijv. mislukte inlogpogingen).
+ */
+function logActie(PDO $pdo, string $actie, string $beschrijving = ''): void
+{
+    $gebruikerId = null;
+    if (function_exists('ingelogdeGebruiker') && ingelogdeGebruiker() !== null) {
+        $gebruikerId = (int)ingelogdeGebruiker()['id'];
+    }
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO logboek (gebruiker_id, actie, beschrijving, ip, apparaat)
+             VALUES (?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $gebruikerId,
+            mb_substr($actie, 0, 60),
+            mb_substr($beschrijving, 0, 500),
+            ipAdres(),
+            mb_substr(apparaatLabel(), 0, 120),
+        ]);
+    } catch (Throwable $e) {
+        // Logboek mag nooit een actie laten mislukken.
+    }
+}
+
+/* --- Onthouden apparaten (2FA 30 dagen overslaan op dit apparaat) --- */
+
+const ONDHOUD_COOKIE = 'cl_onthoud';
+
+/** Maakt een apparaat-token aan en zet de onthoud-cookie (30 dagen). */
+function onthoudApparaat(PDO $pdo, int $gebruikerId): void
+{
+    $token = bin2hex(random_bytes(32));
+    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    setcookie(ONDHOUD_COOKIE, $gebruikerId . '.' . $token, [
+        'expires' => time() + 60 * 60 * 24 * 30,
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => $secure,
+    ]);
+    $stmt = $pdo->prepare(
+        'INSERT INTO apparaten (gebruiker_id, token_hash, label, ip, laatst_gebruikt)
+         VALUES (?, ?, ?, ?, NOW())'
+    );
+    $stmt->execute([$gebruikerId, hash('sha256', $token), apparaatLabel(), ipAdres()]);
+}
+
+/**
+ * Is er een geldige onthoud-cookie voor een ingelogd-waardige gebruiker?
+ * Retourneert de apparaatrij (incl. gebruiker) of null.
+ */
+function onthoudenApparaatGeldig(PDO $pdo): ?array
+{
+    $raw = (string)($_COOKIE[ONDHOUD_COOKIE] ?? '');
+    if (!preg_match('/^(\d+)\.([a-f0-9]{64})$/', $raw, $m)) {
+        return null;
+    }
+    $stmt = $pdo->prepare(
+        'SELECT a.*, g.naam, g.rol, g.actief
+         FROM apparaten a
+         JOIN gebruikers g ON g.id = a.gebruiker_id
+         WHERE a.gebruiker_id = ? AND a.token_hash = ?'
+    );
+    $stmt->execute([(int)$m[1], hash('sha256', $m[2])]);
+    $rij = $stmt->fetch();
+    if (!$rij || !(bool)$rij['actief']) {
+        return null;
+    }
+    $upd = $pdo->prepare('UPDATE apparaten SET laatst_gebruikt = NOW(), ip = ? WHERE id = ?');
+    $upd->execute([ipAdres(), (int)$rij['id']]);
+    return $rij;
+}
+
+/** Verwijdert één onthouden apparaat van de ingelogde gebruiker. */
+function wisApparaat(PDO $pdo, int $id, int $gebruikerId): bool
+{
+    $stmt = $pdo->prepare('DELETE FROM apparaten WHERE id = ? AND gebruiker_id = ?');
+    $stmt->execute([$id, $gebruikerId]);
+    return $stmt->rowCount() > 0;
+}
+
+/** Verwijdert alle onthouden apparaten van een gebruiker (bijv. bij 2FA-reset). */
+function wisApparatenVanGebruiker(PDO $pdo, int $gebruikerId): void
+{
+    $stmt = $pdo->prepare('DELETE FROM apparaten WHERE gebruiker_id = ?');
+    $stmt->execute([$gebruikerId]);
+}

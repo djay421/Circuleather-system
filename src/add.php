@@ -114,7 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'binnenkomst_datum' => $input['binnenkomst_datum'] !== '' ? $input['binnenkomst_datum'] : null,
             'foto' => $fotoPad,
         ]);
-        bewaarCriteriaWaarden($pdo, (int)$pdo->lastInsertId(), $waarden);
+        $nieuwId = (int)$pdo->lastInsertId();
+        bewaarCriteriaWaarden($pdo, $nieuwId, $waarden);
+        logActie($pdo, 'toegevoegd', ($categorie === 'bigbag' ? 'Bigbag ' : 'Leersample ')
+            . ($input['code'] !== '' ? $input['code'] : ('#' . $nieuwId)) . ' toegevoegd');
 
         // Terug naar waar je vandaan kwam:
         //  * handmatig toevoegen (via de voorraadpagina) -> terug naar de voorraadlijst;
@@ -137,10 +140,8 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Circuleather — Voorraad toevoegen</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Circuleather — Voorraad toevoegen'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -165,7 +166,7 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
         </div>
 
         <label for="code">Code <span id="code-vereist-label">(QR / partij-nummer van de bigbag) *</span></label>
-        <input type="text" id="code" name="code" value="<?= htmlspecialchars($input['code']) ?>"
+        <input type="text" id="code" name="code" value="<?= htmlspecialchars($input['code']) ?>" autofocus
                placeholder="<?= $categorie === 'bigbag' ? 'Bijv. BB-2026-001' : 'Optioneel eigen nummer — samples hebben geen QR' ?>">
 
         <label for="locatie">Locatie</label>
@@ -217,7 +218,10 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
             <?php toonCriteriaVelden($criteria, 'leersample'); ?>
         </fieldset>
 
-        <button type="submit">Toevoegen</button>
+        <div class="form-acties">
+            <a href="index.php">Annuleren</a>
+            <button type="submit">Toevoegen</button>
+        </div>
     </form>
 
     <script>

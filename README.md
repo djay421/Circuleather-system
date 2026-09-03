@@ -85,8 +85,9 @@ zonder dat de applicatie herbouwd hoeft te worden.
   - `profile.php` "Mijn account" (2FA zelf regelen) · `users.php`/`user_edit.php` accountbeheer (admin)
   - `functies.php` gedeelde helpers (dynamische criteria) · `nav.php` navigatie
   - `style.css` + `fonts/` merkstijl (Poppins, kleuren van circuleather.com) · `db.php` databaseverbinding
+  - `head.php` gedeelde `<head>` (PWA-manifest, iconen, stijl) · `manifest.webmanifest` + `icon-*.png` PWA-ondersteuning
   - `uploads/` geüploade productfoto's (map wordt bijgehouden, staat in .gitignore)
-  - `live.js` live-updates (pollen, geen herladen nodig)
+  - `live.js` live-updates + app-hulp (toasts, FAB, inklapbare filters)
 - `docker-compose.yml` + `Dockerfile` — lokale omgeving (Apache + PHP + MySQL + phpMyAdmin)
 
 ## Voorraad: tabs en filters
@@ -115,6 +116,31 @@ binnen enkele seconden verschijnen — zonder te verversen. In een tab op de
 achtergrond wordt er niet gepollt; zodra je terugkeert volgt direct een
 controle. De gegevens komen uit dezelfde database en dezelfde sessiebeveiliging
 als de gewone pagina's.
+
+## Mobiel & PWA (installeren op je telefoon)
+
+De app is mobiel-eerst ontworpen: op een telefoon krijg je een echte
+app-ervaring in plaats van een verkleinde website.
+
+- **Onderste navigatiebalk** met pictogrammen (Voorraad, Galerij, Scan en
+  Beheer/Labels voor beheerders of Account voor medewerkers) — altijd
+  binnen handbereik, ook op schermen met een "thuistoets" (safe-area).
+- **Zwevende actieknop (+)**: op de voorraadpagina open je daarmee in één
+  tik "Bigbag toevoegen", "Leersample toevoegen" of "Scannen".
+- **Filters inklapbaar**: op telefoons staat één "Filters"-knop (met het
+  aantal actieve filters) in plaats van een muur van dropdowns; op laptop
+  staan de filters gewoon inline.
+- **Vaste opslaan-balk**: bij toevoegen/bewerken blijft "Annuleren/Opslaan"
+  onderaan in beeld terwijl je scrollt.
+- **Toasts**: succesmeldingen verschijnen als korte melding bovenaan en
+  verdwijnen vanzelf; foutmeldingen blijven staan.
+- **Installeren (PWA)**: de app heeft een manifest + app-iconen. Op je
+  telefoon kies je "Toevoegen aan beginscherm" (Android: menu → App
+  installeren; iPhone: Delen → Zet op beginscherm). De app opent daarna
+  eigen venster (standalone) met een eigen icoon, zoals een echte app.
+- Grotere knoppen en invoervelden (geen per ongeluk zoom op iOS), live-stipje
+  op pagina's die automatisch bijwerken, en rijen als kaarten met een
+  kleurrand (rood = bigbag, goud = leersample) en een pijltje naar Bewerken.
 
 ## Inloggen en accounts
 
@@ -156,6 +182,40 @@ meteen het wachtwoord wijzigen via Medewerkers → Bewerken):
 > Let op: wie het wachtwoord van een beheerder bezit én de 2FA-setup nog
 > niet heeft afgerond, kan zelf de setup doorlopen. Stel 2FA daarom direct
 > in zodra de app publiek bereikbaar is (en wijzig het standaardwachtwoord).
+
+## Logboek (audit-log, alleen beheerder)
+
+Alles wat er in de app gebeurt wordt vastgelegd in de tabel `logboek`:
+wie deed wat en wanneer, vanaf welk IP-adres en welk apparaat
+(inloggen, mislukte inlogpogingen, toevoegen/bewerken/verwijderen van
+voorraad, statuswijzigingen, verkoop + ongedaan maken, foto's, gebruikers-
+beheer, 2FA-wijzigingen, labelgeneratie, uitloggen).
+
+- **Pagina "Logboek"** (menu boven, en via Beheer → "📋 Logboek bekijken"):
+  één overzicht dat **live** bijwerkt — een actie van iemand anders verschijnt
+  binnen enkele seconden zonder herladen.
+- **Filters**: periode (van/tot), persoon, actietype en vrije zoektekst
+  (beschrijving, IP of apparaat).
+- **Download**: met de knop "⬇ Download CSV" sla je de (gefilterde) lijst op
+  als CSV (Excel-vriendelijk, met BOM) — gesegmenteerd naar periode, persoon
+  en/of actie zoals in de user cases gevraagd.
+
+## Onthouden apparaten (2FA niet elke keer)
+
+Na het invoeren van je 2FA-code kun je **"Onthoud dit apparaat 30 dagen"**
+aanvinken: op die telefoon of computer wordt de code de komende 30 dagen
+overgeslagen (het wachtwoord blijft altijd nodig). Dit apparaat wordt
+vastgelegd in de tabel `apparaten`.
+
+- **Mijn account → "Onthouden apparaten"**: zie elk onthouden apparaat
+  (naam, laatste gebruik, IP) en verwijder er één — daar wordt dan weer om
+  een code gevraagd.
+- **Beheerder → Medewerkers → Bewerken**: zie hoeveel apparaten een account
+  onthoudt, wis ze allemaal (verloren telefoon), en bij een 2FA-reset worden
+  alle onthouden apparaten automatisch ongeldig.
+- Veiligheid: het apparaat wordt alleen herkend via een uniek, onomkeerbaar
+  gehasht token in een beveiligde cookie (HttpOnly + SameSite=Lax, alleen
+  https); de code staat nooit in de cookie.
 
 ## Galerij en verkoop (leersamples)
 

@@ -232,3 +232,30 @@ CREATE TABLE IF NOT EXISTS verkopen (
     KEY idx_verkopen_datum (verkocht_op)
 ) DEFAULT CHARSET=utf8mb4;
 
+-- Logboek: elke belangrijke actie (wie, wat, wanneer, vanaf welk apparaat).
+CREATE TABLE IF NOT EXISTS logboek (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    gebruiker_id INT NULL,
+    actie VARCHAR(60) NOT NULL,
+    beschrijving VARCHAR(500) NOT NULL DEFAULT '',
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    apparaat VARCHAR(120) NOT NULL DEFAULT '',
+    aangemaakt_op DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_logboek_datum (aangemaakt_op),
+    KEY idx_logboek_gebruiker (gebruiker_id),
+    KEY idx_logboek_actie (actie)
+) DEFAULT CHARSET=utf8mb4;
+
+-- Onthouden apparaten (2FA overslaan gedurende 30 dagen per apparaat).
+CREATE TABLE IF NOT EXISTS apparaten (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    gebruiker_id INT NOT NULL,
+    token_hash VARCHAR(64) NOT NULL,
+    label VARCHAR(120) NOT NULL DEFAULT '',
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    laatst_gebruikt DATETIME NULL,
+    aangemaakt_op DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_apparaten_token (token_hash),
+    KEY idx_apparaten_gebruiker (gebruiker_id)
+) DEFAULT CHARSET=utf8mb4;
+

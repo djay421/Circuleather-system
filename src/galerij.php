@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verkoop'])) {
         $upd->execute([$id]);
         $ins = $pdo->prepare('INSERT INTO verkopen (voorraad_id, gebruiker_id) VALUES (?, ?)');
         $ins->execute([$id, (int)ingelogdeGebruiker()['id']]);
+        logActie($pdo, 'verkocht', 'Sample #' . $id . ' verkocht');
         $melding = 'Sample verkocht en uit de voorraad gehaald.';
     }
 }
@@ -36,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ongedaan'])) {
         $upd->execute([$id]);
         $del = $pdo->prepare('DELETE FROM verkopen WHERE voorraad_id = ? ORDER BY id DESC LIMIT 1');
         $del->execute([$id]);
+        logActie($pdo, 'verkoop_ongedaan', 'Verkoop van sample #' . $id . ' ongedaan gemaakt');
         $melding = 'Verkoop ongedaan gemaakt; de sample is weer beschikbaar.';
     } else {
         $errors[] = 'Alleen verkochte samples kunnen worden teruggezet.';
@@ -72,6 +74,7 @@ if (!in_array($toon, ['tekoop', 'alles', 'verkocht'], true)) {
 }
 $kleur = trim((string)($_GET['kleur'] ?? ''));
 $zoek = trim((string)($_GET['zoek'] ?? ''));
+$aantalFilters = ($kleur !== '' ? 1 : 0) + ($zoek !== '' ? 1 : 0);
 
 $kleuren = [];
 $stmt = $pdo->query(
@@ -133,72 +136,12 @@ if ($liveFragment) {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Galerij — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
-    <style>
-        .g-tel { color: var(--mild); font-size: 14px; }
-        .g-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; background: var(--wit); border: 1px solid var(--lijn); border-radius: var(--radius); padding: 14px; margin: 6px 0 16px; }
-        .g-filters form { display: contents; }
-        .g-filters form input[type="search"] { flex: 1 1 200px; max-width: 340px; }
-        .g-filters select, .g-filters input { width: auto; margin-top: 0; min-width: 160px; }
-        .g-filters form button { margin-top: 0; width: auto; }
-        .g-voet form { background: transparent; box-shadow: none; border: 0; padding: 0; margin: 0; max-width: none; }
-        .g-voet button { margin-top: 0; width: 100%; }
-        .g-filters .segm { display: flex; border: 1.5px solid var(--lijn); border-radius: 999px; overflow: hidden; }
-        .g-filters .segm a { padding: 9px 16px; font-size: 14px; font-weight: 600; color: var(--mild); text-decoration: none; white-space: nowrap; }
-        .g-filters .segm a.actief { background: var(--ink); color: #fff; }
-        .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 16px; }
-        .g-kaart { background: var(--wit); border: 1px solid var(--lijn); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--schaduw); }
-        .g-staal { height: 150px; position: relative; }
-        .g-staal::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(0,0,0,.12)); mix-blend-mode: multiply; }
-        .g-foto { height: 150px; position: relative; background: var(--beige); }
-        .g-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .g-fotovorm { position: absolute; right: 10px; bottom: 10px; margin: 0; padding: 0; background: transparent; box-shadow: none; border: 0; border-top: 0; max-width: none; z-index: 2; }
-        .g-fotovorm button, .g-fotoknop {
-            display: inline-block;
-            padding: 8px 12px;
-            background: rgba(33, 28, 22, .72);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, .55);
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, .28);
-            margin: 0;
-            width: auto;
-        }
-        .g-fotoknop { position: relative; overflow: hidden; }
-        .g-fotoknop input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-        .g-fotovorm button:hover, .g-fotoknop:hover { background: var(--leer-donker); }
-        .g-lichaam { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .g-code { font-family: "Poppins", system-ui, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: .02em; color: var(--ink); text-transform: uppercase; }
-        .g-regel { font-size: 13px; color: var(--ink); }
-        .g-regel .lb { color: var(--mild); }
-        .g-voet { margin-top: auto; padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-        .g-voet .badge { align-self: flex-start; }
-        .g-knop { background: var(--accent); }
-        .g-knop:hover { background: var(--accent-donker); }
-        details.g-meer { margin-top: 4px; }
-        details.g-meer summary { cursor: pointer; font-size: 12.5px; color: var(--accent-donker); font-weight: 600; }
-        details.g-meer dl { margin: 6px 0 2px; }
-        details.g-meer dt { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--mild); margin-top: 6px; }
-        details.g-meer dd { margin: 0 0 0 2px; font-size: 13px; }
-        .g-leeg { text-align: center; color: var(--mild); padding: 40px 10px; border: 1px dashed var(--lijn); border-radius: var(--radius); }
-        .g-verkocht-donker { color: var(--mild); }
-        @media (max-width: 760px) {
-            .g-filters form { flex-wrap: wrap; }
-            .g-filters form input[type="search"] { flex: 1 1 100%; max-width: none; }
-            .g-filters .segm { flex: 1 1 100%; justify-content: center; }
-            .g-filters .segm a { flex: 1; text-align: center; }
-        }
-    </style>
+    <?php $titel = 'Galerij — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
-    <h1>Galerij <small id="gal-tel">leersamples · <?= $aantalTeKoop ?> te koop · <?= $aantalVerkocht ?> verkocht</small></h1>
+    <h1>Galerij <small><span class="live-stip" title="Automatisch bijgewerkt"></span><span id="gal-tel">leersamples · <?= $aantalTeKoop ?> te koop · <?= $aantalVerkocht ?> verkocht</span></small></h1>
     <p class="meta">De samples die beschikbaar zijn als verkoop. Toon een klant het staal op je
     telefoon of tablet; met “Verkoop” haal je de sample direct uit de voorraad (registratie: wie en wanneer).</p>
 
@@ -219,7 +162,10 @@ if ($liveFragment) {
             <a class="<?= $toon === 'alles' ? 'actief' : '' ?>" href="galerij.php?toon=alles<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Alles</a>
             <a class="<?= $toon === 'verkocht' ? 'actief' : '' ?>" href="galerij.php?toon=verkocht<?= $kleur ? '&kleur=' . urlencode($kleur) : '' ?>">Verkocht (<span id="cnt-verkocht"><?= $aantalVerkocht ?></span>)</a>
         </div>
-        <form method="get" action="galerij.php" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;background:none;box-shadow:none;padding:0;margin:0;border:0">
+        <div class="filterblok">
+            <button type="button" class="filters-knop">Filters<?php if ($aantalFilters > 0): ?><span class="filters-tel"><?= $aantalFilters ?> actief</span><?php endif; ?></button>
+            <div class="filters-inhoud">
+        <form method="get" action="galerij.php" class="g-filterform">
             <input type="hidden" name="toon" value="<?= htmlspecialchars($toon) ?>">
             <select name="kleur" onchange="this.form.submit()">
                 <option value="">Alle kleuren</option>
@@ -230,6 +176,8 @@ if ($liveFragment) {
             <input type="search" name="zoek" value="<?= htmlspecialchars($zoek) ?>" placeholder="Zoek op code of opmerking…">
             <button type="submit" class="secondary">Filter</button>
         </form>
+            </div>
+        </div>
     </div>
 
     <div id="live-wissel">
@@ -309,7 +257,6 @@ if ($liveFragment) {
         <!--LIVE-GRID-EIND-->
     </div>
 
-    <script src="live.js"></script>
     <script>
         (function () {
             var wissel = document.getElementById('live-wissel');

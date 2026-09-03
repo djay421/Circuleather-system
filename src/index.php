@@ -85,8 +85,12 @@ $kenmerken = haalKenmerken($pdo, array_map(fn ($i) => (int)$i['id'], $items));
 
 $totaalBigbags = (int)$pdo->query("SELECT COUNT(*) FROM voorraad WHERE categorie = 'bigbag'")->fetchColumn();
 $totaalSamples = (int)$pdo->query("SELECT COUNT(*) FROM voorraad WHERE categorie = 'leersample'")->fetchColumn();
+$totaalBeschikbaar = (int)$pdo->query("SELECT COUNT(*) FROM voorraad WHERE categorie = 'leersample' AND status IN ('beschikbaar','gereserveerd')")->fetchColumn();
+$totaalAlle = $totaalBigbags + $totaalSamples;
 
-$heeftFilters = $status !== '' || $stadId > 0 || $zoek !== '' || count(array_filter($filterKeuze)) > 0;
+$aantalFilters = ($status !== '' ? 1 : 0) + ($stadId > 0 ? 1 : 0) + ($zoek !== '' ? 1 : 0) + count(array_filter($filterKeuze));
+$heeftFilters = $aantalFilters > 0;
+$legeCta = $soort === 'bigbag' ? 'add.php?categorie=bigbag' : 'add.php?categorie=leersample';
 $tabZoek = $zoek !== '' ? '&zoek=' . rawurlencode($zoek) : '';
 
 // Live-update-fragment: buffert de pagina en stuurt alleen de tabelrijen als JSON.
@@ -98,53 +102,25 @@ if ($liveFragment) {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Circuleather — Voorraad</title>
-    <link rel="stylesheet" href="style.css?v=4">
-    <style>
-        .kleurbol {
-            display: inline-block;
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            margin-right: 8px;
-            vertical-align: -1px;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 1px rgba(36, 28, 18, .22), 0 1px 3px rgba(36, 28, 18, .25);
-        }
-        .v-filterbalk { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; background: var(--wit); border: 1px solid var(--lijn); border-radius: var(--radius); padding: 14px; margin: 4px 0 18px; box-shadow: var(--schaduw); }
-        .v-filterbalk .segm { display: flex; border: 1.5px solid var(--lijn); border-radius: 999px; overflow: hidden; background: #fbf6ea; }
-        .v-filterbalk .segm a { padding: 9px 15px; font-size: 13px; font-weight: 600; color: var(--mild); text-decoration: none; white-space: nowrap; }
-        .v-filterbalk .segm a.actief { background: var(--ink); color: #fff; }
-        .v-filterbalk .segm a span { font-weight: 400; opacity: .8; }
-        .v-rij { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; flex: 1 1 auto; }
-        .v-veld { display: flex; flex-direction: column; gap: 4px; }
-        .v-veld > label { margin: 0; font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--mild); }
-        .v-veld select, .v-veld input { width: auto; margin-top: 0; min-width: 150px; }
-        .v-veld input[type="search"] { min-width: 190px; }
-        .v-filterbalk form { display: contents; }
-        .v-filterbalk button { margin-top: 0; width: auto; padding: 11px 20px; font-size: 13.5px; }
-        .wis-filters { font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 8px 2px; white-space: nowrap; }
-        @media (max-width: 760px) {
-            .v-filterbalk .segm { flex: 1 1 100%; justify-content: center; }
-            .v-filterbalk .segm a { flex: 1; text-align: center; }
-            .v-veld { flex: 1 1 100%; }
-            .v-veld select, .v-veld input, .v-veld input[type="search"] { width: 100%; min-width: 0; }
-            .v-filterbalk button { width: 100%; }
-            .wis-filters { text-align: center; }
-        }
-    </style>
+    <?php $titel = 'Circuleather — Voorraad'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
-    <h1>Voorraad <small id="live-tel"><?= count($items) ?> items</small></h1>
+    <h1>Voorraad <small><span class="live-stip" title="Automatisch bijgewerkt"></span><span id="live-tel"><?= count($items) ?> items</span></small></h1>
 
     <?php if (isset($berichten[$msg])): ?>
         <div class="msg"><?= htmlspecialchars($berichten[$msg]) ?></div>
     <?php endif; ?>
 
-    <div class="knoppen">
+    <div class="stat-rij">
+        <div class="stat"><span class="stat-icoon">📦</span><span class="stat-label">Bigbags</span><span class="stat-waarde" id="stat-bigbags"><?= $totaalBigbags ?></span></div>
+        <div class="stat"><span class="stat-icoon">🧵</span><span class="stat-label">Leersamples</span><span class="stat-waarde" id="stat-samples"><?= $totaalSamples ?></span></div>
+        <div class="stat"><span class="stat-icoon">🏷</span><span class="stat-label">Te koop</span><span class="stat-waarde" id="stat-beschikbaar"><?= $totaalBeschikbaar ?></span></div>
+        <div class="stat"><span class="stat-icoon">📊</span><span class="stat-label">Totaal items</span><span class="stat-waarde" id="stat-totaal"><?= $totaalAlle ?></span></div>
+    </div>
+
+    <div class="knoppen toevoegen-rij">
         <a href="add.php?categorie=bigbag">+ Bigbag toevoegen</a>
         <a href="add.php?categorie=leersample" class="secondary">+ Leersample toevoegen</a>
         <a href="scan.php" class="secondary">📷 Scan met camera</a>
@@ -156,7 +132,10 @@ if ($liveFragment) {
             <a class="<?= $soort === 'bigbag' ? 'actief' : '' ?>" href="index.php?soort=bigbag<?= $tabZoek ?>">Bigbags <span id="tab-bigbags"><?= $totaalBigbags ?></span></a>
             <a class="<?= $soort === 'leersample' ? 'actief' : '' ?>" href="index.php?soort=leersample<?= $tabZoek ?>">Leersamples <span id="tab-leersamples"><?= $totaalSamples ?></span></a>
         </div>
-        <form method="get" action="index.php" style="display:contents">
+        <div class="filterblok">
+            <button type="button" class="filters-knop">Filters<?php if ($aantalFilters > 0): ?><span class="filters-tel"><?= $aantalFilters ?> actief</span><?php endif; ?></button>
+            <div class="filters-inhoud">
+        <form method="get" action="index.php" class="v-filterform">
             <input type="hidden" name="soort" value="<?= htmlspecialchars($soort) ?>">
             <div class="v-rij">
                 <span class="v-veld">
@@ -200,6 +179,8 @@ if ($liveFragment) {
                 <?php endif; ?>
             </div>
         </form>
+            </div>
+        </div>
     </div>
 
     <table>
@@ -216,13 +197,13 @@ if ($liveFragment) {
         </thead>
         <tbody id="live-rijen">
         <?php if (empty($items)): ?>
-            <tr><td colspan="7" class="lege-tabel"><?= $heeftFilters
+            <tr><td colspan="7" class="lege-tabel"><div class="lege-inner"><span class="lege-icoon">📦</span><p><?= $heeftFilters
                 ? 'Geen voorraad gevonden met deze filters.'
-                : ($soort === 'bigbag' ? 'Nog geen bigbags geregistreerd.' : ($soort === 'leersample' ? 'Nog geen leersamples geregistreerd.' : 'Nog geen voorraad toegevoegd.')) ?></td></tr>
+                : ($soort === 'bigbag' ? 'Nog geen bigbags geregistreerd.' : ($soort === 'leersample' ? 'Nog geen leersamples geregistreerd.' : 'Nog geen voorraad toegevoegd.')) ?></p><a href="<?= $legeCta ?>">+ Toevoegen</a></div></td></tr>
         <?php else: foreach ($items as $v): $itemKenmerken = $kenmerken[(int)$v['id']] ?? [];
             $kleurwaarde = $v['categorie'] === 'leersample' ? ($itemKenmerken['Kleurcategorie'][0] ?? '') : ''; ?>
-            <tr>
-                <td data-label="Code"><?php if ($kleurwaarde !== ''): ?><span class="kleurbol" style="background:<?= leerStaal($kleurwaarde) ?>" title="Kleurcategorie: <?= htmlspecialchars($kleurwaarde) ?>"></span><?php endif; ?><?= htmlspecialchars(itemLabel($v)) ?></td>
+            <tr class="rij-<?= $v['categorie'] ?>">
+                <td data-label="Code"><?php if ($kleurwaarde !== ''): ?><span class="kleurbol" style="background:<?= leerStaal($kleurwaarde) ?>" title="Kleurcategorie: <?= htmlspecialchars($kleurwaarde) ?>"></span><?php endif; ?><?= htmlspecialchars(itemLabel($v)) ?><a class="rij-chevron" href="edit.php?id=<?= (int)$v['id'] ?>" aria-label="Bewerken">›</a></td>
                 <td data-label="Categorie"><?= $v['categorie'] === 'bigbag' ? 'Bigbag' : 'Leersample' ?></td>
                 <td data-label="Herkomst"><?php
                     if ($v['categorie'] === 'bigbag') {
@@ -251,13 +232,16 @@ if ($liveFragment) {
         </tbody>
     </table>
 
-    <script src="live.js"></script>
     <script>
         (function () {
             var tbody = document.getElementById('live-rijen');
             var tel = document.getElementById('live-tel');
             var tb = document.getElementById('tab-bigbags');
             var ts = document.getElementById('tab-leersamples');
+            var sb = document.getElementById('stat-bigbags');
+            var ss = document.getElementById('stat-samples');
+            var sbes = document.getElementById('stat-beschikbaar');
+            var stot = document.getElementById('stat-totaal');
             if (!tbody) { return; }
             var vorige = tbody.innerHTML;
             livePoll(function () {
@@ -276,9 +260,21 @@ if ($liveFragment) {
                 }
                 if (tb && typeof d.bigbags === 'number') { tb.textContent = d.bigbags; }
                 if (ts && typeof d.samples === 'number') { ts.textContent = d.samples; }
+                if (sb && typeof d.bigbags === 'number') { sb.textContent = d.bigbags; }
+                if (ss && typeof d.samples === 'number') { ss.textContent = d.samples; }
+                if (sbes && typeof d.beschikbaar === 'number') { sbes.textContent = d.beschikbaar; }
+                if (stot && typeof d.alles === 'number') { stot.textContent = d.alles; }
             });
         })();
     </script>
+    <div class="fab" id="fab">
+        <div class="fab-items">
+            <a href="add.php?categorie=bigbag">📦 Bigbag toevoegen</a>
+            <a href="add.php?categorie=leersample">🧵 Leersample toevoegen</a>
+            <a href="scan.php">📷 Scannen</a>
+        </div>
+        <button type="button" class="fab-knop" aria-label="Toevoegen">+</button>
+    </div>
 </body>
 </html>
 <?php
@@ -293,6 +289,8 @@ if ($liveFragment) {
         'totaal' => count($items),
         'bigbags' => $totaalBigbags,
         'samples' => $totaalSamples,
+        'beschikbaar' => $totaalBeschikbaar,
+        'alles' => $totaalAlle,
         'html' => $rijen,
     ]);
     exit;

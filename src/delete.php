@@ -6,15 +6,19 @@ require 'functies.php';
 $id = (int)($_GET['id'] ?? 0);
 
 if ($id > 0) {
-    $stmt = $pdo->prepare('SELECT foto FROM voorraad WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT code, categorie, foto FROM voorraad WHERE id = ?');
     $stmt->execute([$id]);
-    $foto = $stmt->fetchColumn();
-    if ($foto !== false && $foto !== null) {
-        verwijderFotoBestand($foto);
+    $rij = $stmt->fetch();
+    if ($rij) {
+        if (!empty($rij['foto'])) {
+            verwijderFotoBestand($rij['foto']);
+        }
+        $stmt = $pdo->prepare('DELETE FROM voorraad WHERE id = ?');
+        $stmt->execute([$id]);
+        logActie($pdo, 'verwijderd', ucfirst($rij['categorie'] ?? 'voorraad') . ' '
+            . ($rij['code'] ?: '#' . $id) . ' verwijderd');
     }
-    $stmt = $pdo->prepare('DELETE FROM voorraad WHERE id = ?');
-    $stmt->execute([$id]);
 }
 
 header('Location: index.php?msg=deleted');
-exit;
+exit;

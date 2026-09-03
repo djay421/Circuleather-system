@@ -126,6 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'id' => $id,
         ]);
         bewaarCriteriaWaarden($pdo, $id, $waarden);
+        logActie($pdo, 'bewerkt', ($categorie === 'bigbag' ? 'Bigbag ' : 'Leersample ') . itemLabel($item) . ' bewerkt');
 
         header('Location: index.php?msg=updated');
         exit;
@@ -135,10 +136,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Circuleather — Voorraad bewerken</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Circuleather — Voorraad bewerken'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -216,7 +215,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </fieldset>
         <?php endif; ?>
 
-        <button type="submit">Opslaan</button>
+        <div class="form-acties">
+            <a href="index.php">Annuleren</a>
+            <button type="submit">Opslaan</button>
+        </div>
     </form>
 </body>
 </html>

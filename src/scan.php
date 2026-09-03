@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$status, $code]);
         if ($stmt->rowCount() > 0) {
             $melding = 'Status bijgewerkt naar "' . ucfirst(str_replace('_', ' ', $status)) . '".';
+            logActie($pdo, 'status_bijgewerkt', 'Status van ' . $code . ' naar ' . $status);
         } else {
             $errors[] = 'Geen voorraad gevonden met deze code.';
         }
@@ -69,10 +70,8 @@ if ($code !== '' && empty($errors)) {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Scannen — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Scannen — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body class="smal">
     <?php include 'nav.php'; ?>
@@ -163,12 +162,14 @@ if ($code !== '' && empty($errors)) {
 
         <div class="viewfinder">
             <video id="camera" autoplay muted playsinline></video>
+            <div class="scan-hoek"></div>
             <div class="scan-status" id="scan-status">Camera starten …</div>
         </div>
 
+        <label for="scan-code" class="scan-label">Code handmatig invoeren</label>
         <form class="handmatig" method="get" action="scan.php">
-            <input type="text" name="code" value="<?= htmlspecialchars($code) ?>"
-                   placeholder="Of voer de code handmatig in" required autocomplete="off">
+            <input type="text" id="scan-code" name="code" value="<?= htmlspecialchars($code) ?>"
+                   placeholder="Bijv. BB-2026-001" required autocomplete="off">
             <button type="submit">Zoeken</button>
         </form>
 

@@ -1,6 +1,7 @@
 <?php
 require 'auth.php';
 require 'totp.php';
+require 'functies.php';
 
 // Twee situaties:
 // 1) Verplicht: beheerder is net ingelogd met wachtwoord, 2FA staat nog uit (wachtende stap).
@@ -58,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upd = $pdo->prepare('UPDATE gebruikers SET totp_secret = ? WHERE id = ?');
             $upd->execute([$geheim, (int)$gebruiker['id']]);
             wisHerstelcodes($pdo, (int)$gebruiker['id']);
+            wisApparatenVanGebruiker($pdo, (int)$gebruiker['id']); // oude onthouden apparaten ongeldig maken
+            logActie($pdo, '2fa_ingesteld', 'Tweestapsverificatie ingesteld voor ' . $gebruiker['email']);
             $codes = genereerHerstelcodes(10);
             bewaarHerstelcodes($pdo, (int)$gebruiker['id'], $codes);
             unset($_SESSION['2fa_setup_geheim']);
@@ -83,17 +86,8 @@ $codes = $fase === 'codes' && empty($codes) ? ($_SESSION['2fa_codes'] ?? []) : $
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>2FA instellen — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
-    <style>
-        .qr-vak { display: flex; justify-content: center; margin: 14px 0 4px; }
-        .qr-vak svg { width: 220px; height: 220px; }
-        .geheim { text-align: center; font-family: ui-monospace, monospace; letter-spacing: .08em; }
-        .rc-rij { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-        .rc-rij span { font-family: ui-monospace, monospace; background: #f3f0ea; border: 1px solid #ddd6c8; padding: 4px 10px; border-radius: 8px; font-size: 14px; }
-    </style>
+    <?php $titel = '2FA instellen — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body class="login-pagina">
     <div class="login-box">

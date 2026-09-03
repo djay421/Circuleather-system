@@ -1,6 +1,7 @@
 <?php
 require 'auth.php';
 require 'totp.php';
+require 'functies.php';
 vereisLogin();
 
 $gebruiker = ingelogdeGebruiker();
@@ -30,7 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upd = $pdo->prepare('UPDATE gebruikers SET totp_secret = NULL WHERE id = ?');
             $upd->execute([$id]);
             wisHerstelcodes($pdo, $id);
+            wisApparatenVanGebruiker($pdo, $id); // oude onthouden apparaten zijn niet meer geldig
             if ($actie === 'uit') {
+                logActie($pdo, '2fa_uit', 'Tweestapsverificatie uitgezet');
                 $melding = 'Tweestapsverificatie staat uit.';
             } else {
                 header('Location: 2fa-setup.php');
@@ -40,15 +43,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Vul een geldige code in (Google Authenticator of een ongebruikte herstelcode).';
         }
     }
+
+    // Een onthouden apparaat verwijderen (daar wordt dan weer om een code gevraagd).
+    if ($actie === 'apparaat_weg') {
+        $apparaatId = (int)($_POST['apparaat_id'] ?? 0);
+        if ($apparaatId > 0 && wisApparaat($pdo, $apparaatId, $id)) {
+            logActie($pdo, 'apparaat_verwijderd', 'Onthouden apparaat verwijderd');
+            $melding = 'Apparaat verwijderd — daar wordt weer om een code gevraagd.';
+        } else {
+            $errors[] = 'Apparaat niet gevonden.';
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mijn account — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Mijn account — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -78,6 +90,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <dt>Rol</dt><dd><span class="badge <?= htmlspecialchars($rij['rol']) ?>"><?= htmlspecialchars(rolLabel($rij['rol'])) ?></span></dd>
         </dl>
         <p class="meta">Wachtwoord wijzigen kan de beheerder doen via Medewerkers → Bewerken.</p>
+    </div>
+
+    <?php
+    // Onthouden apparaten van deze gebruiker.
+    $stmtA = $pdo->prepare(
+        'SELECT id, label, ip, laatst_gebruikt, aangemaakt_op
+         FROM apparaten WHERE gebruiker_id = ?
+         ORDER BY COALESCE(laatst_gebruikt, aangemaakt_op) DESC'
+    );
+    $stmtA->execute([$id]);
+    $apparaten = $stmtA->fetchAll();
+    ?>
+
+    <div class="kaart">
+        <h2>Onthouden apparaten</h2>
+        <?php if (empty($apparaten)): ?>
+            <p class="meta">Geen onthouden apparaten. Vink bij de volgende 2FA-login
+            “Onthoud dit apparaat” aan om 30 dagen lang geen code meer te hoeven invoeren
+            op deze telefoon of computer.</p>
+        <?php else: ?>
+            <p class="meta">Op deze apparaten wordt de 2FA-code de komende 30 dagen overgeslagen.
+            Verwijder een apparaat als je het kwijt bent of niet meer vertrouwt — dan wordt daar
+            weer om een code gevraagd.</p>
+            <?php foreach ($apparaten as $app): ?>
+                <div class="apparaat-rij">
+                    <div>
+                        <strong><?= htmlspecialchars($app['label']) ?></strong>
+                        <span class="meta" style="display:block;margin:0">
+                            Laatst gebruikt: <?= htmlspecialchars(date('d-m-Y H:i', strtotime($app['laatst_gebruikt'] ?? $app['aangemaakt_op']))) ?>
+                            <?= $app['ip'] ? ' · ' . htmlspecialchars($app['ip']) : '' ?>
+                        </span>
+                    </div>
+                    <form method="post" style="margin:0">
+                        <input type="hidden" name="actie" value="apparaat_weg">
+                        <input type="hidden" name="apparaat_id" value="<?= (int)$app['id'] ?>">
+                        <button type="submit" class="secondary" style="margin:0;min-height:40px"
+                                onclick="return confirm('Dit apparaat vergeten? Daar wordt weer om een code gevraagd.')">Verwijderen</button>
+                    </form>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <div class="kaart">

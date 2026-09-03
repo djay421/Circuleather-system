@@ -1,5 +1,6 @@
 <?php
 require 'auth.php';
+require 'functies.php';
 vereisAdmin();
 
 $fout = '';
@@ -11,8 +12,12 @@ if ($verwijderId > 0) {
     } elseif (isActieveAdmin($pdo, $verwijderId) && isLaatsteActieveAdmin($pdo, $verwijderId)) {
         $fout = 'De laatste actieve beheerder kan niet worden verwijderd.';
     } else {
+        $stmt = $pdo->prepare('SELECT naam, email FROM gebruikers WHERE id = ?');
+        $stmt->execute([$verwijderId]);
+        $weg = $stmt->fetch();
         $stmt = $pdo->prepare('DELETE FROM gebruikers WHERE id = ?');
         $stmt->execute([$verwijderId]);
+        logActie($pdo, 'gebruiker_verwijderd', 'Account verwijderd: ' . ($weg['email'] ?? '#' . $verwijderId));
         header('Location: users.php?msg=deleted');
         exit;
     }
@@ -31,10 +36,8 @@ $gebruikers = $pdo->query('SELECT id, naam, email, rol, actief, totp_secret, aan
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Medewerkers — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Medewerkers — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -46,7 +49,12 @@ $gebruikers = $pdo->query('SELECT id, naam, email, rol, actief, totp_secret, aan
         <div class="msg"><?= htmlspecialchars($berichten[$msg]) ?></div>
     <?php endif; ?>
 
-    <div class="knoppen"><a href="user_edit.php">+ Nieuwe medewerker</a></div>    <table>
+    <div class="knoppen">
+        <a href="user_edit.php">+ Nieuwe medewerker</a>
+        <a class="secondary" href="logboek.php">📋 Logboek bekijken</a>
+        <a class="secondary" href="labels.php">🏷 QR-labels genereren</a>
+    </div>
+    <table>
         <thead>
             <tr>
                 <th>Naam</th>

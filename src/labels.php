@@ -1,5 +1,6 @@
 <?php
 require 'auth.php';
+require 'functies.php';
 vereisAdmin();
 
 $jaar = (string)date('Y');
@@ -61,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (empty($errors)) {
             $toonCodes = $codes;
+            logActie($pdo, 'labels_gegenereerd', count($codes) . ' labels: ' . implode(', ', $codes));
             $melding = count($codes) . ' label(s) gegenereerd: ' . implode(', ', $codes)
                 . '. Print ze, plak een label op een lege bigbag en scan de code bij inname.';
         }
@@ -92,77 +94,8 @@ $geschiedenis = $pdo->query(
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QR-labels — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
-    <style>
-        .qr-aantal { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
-        .qr-aantal label { margin: 0; }
-        .qr-aantal input { width: 110px; margin-top: 0; }
-        .qr-aantal button { margin-top: 0; }
-
-        .qr-sheet {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
-            margin: 10px 0 26px;
-        }
-        .qr-label {
-            background: var(--wit);
-            border: 1px solid #b9a98c;
-            border-radius: 14px;
-            padding: 12px 14px 10px;
-            break-inside: avoid;
-        }
-        .qr-label .merk {
-            font-size: 9.5px;
-            letter-spacing: .18em;
-            text-transform: uppercase;
-            color: var(--leer);
-            font-weight: 700;
-        }
-        .qr-label .code {
-            font-family: Georgia, serif;
-            font-size: 21px;
-            font-weight: 700;
-            color: var(--ink);
-            margin: 2px 0 6px;
-        }
-        .qr-label .qr-vak {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            max-width: 200px;
-            margin: 0 auto 6px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 4px;
-        }
-        .qr-label .qr-vak svg { width: 100%; height: auto; display: block; }
-        .qr-label .invul {
-            border: 1px dashed #c9b896;
-            border-radius: 8px;
-            padding: 2px 8px 6px;
-        }
-        .qr-label .invul div {
-            font-size: 10.5px;
-            color: var(--mild);
-            border-bottom: 1px dotted #ddd0ba;
-            padding: 3px 0 2px;
-            min-height: 15px;
-        }
-        .qr-label .invul div:last-child { border-bottom: 0; }
-
-        @media print {
-            body { max-width: none; padding: 0; background: #fff; }
-            .sitekop, .niet-printen { display: none !important; }
-            .qr-sheet { margin: 0; gap: 5mm; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
-            .qr-label { border-radius: 3mm; }
-            @page { size: A4 portrait; margin: 8mm; }
-        }
-    </style>
+    <?php $titel = 'QR-labels — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>

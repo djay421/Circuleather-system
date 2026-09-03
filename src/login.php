@@ -1,5 +1,6 @@
 <?php
 require 'auth.php';
+require 'functies.php';
 
 if (ingelogdeGebruiker() !== null) {
     header('Location: index.php');
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$gebruiker || !(bool)$gebruiker['actief'] || !password_verify($wachtwoord, $gebruiker['wachtwoord_hash'])) {
             $errors[] = 'Onjuist e-mailadres of wachtwoord.';
+            logActie($pdo, 'inloggen_mislukt', 'Mislukte inlogpoging voor ' . $email);
         } else {
             $redirect = trim((string)($_POST['redirect'] ?? ''));
             $doel = isVeiligePaginaUrl($redirect) ? $redirect : 'index.php';
@@ -33,6 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Tweede stap: Google Authenticator. Beheerders móéten 2FA hebben;
             // medewerkers die het (nog) niet aan hebben gezet kunnen direct door.
             if (!empty($gebruiker['totp_secret'])) {
+                // Dit apparaat staat in de onthoud-cookie: 2FA overslaan.
+                $onthouden = onthoudenApparaatGeldig($pdo);
+                if ($onthouden !== null && (int)$onthouden['gebruiker_id'] === (int)$gebruiker['id']) {
+                    meldAan($gebruiker);
+                    logActie($pdo, 'inloggen', 'Ingelogd vanaf onthouden apparaat (' . apparaatLabel() . ')');
+                    header('Location: ' . $doel);
+                    exit;
+                }
                 setTweeStapWacht($gebruiker, $doel);
                 header('Location: tweestap.php');
                 exit;
@@ -43,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
             meldAan($gebruiker);
+            logActie($pdo, 'inloggen', 'Ingelogd als ' . $gebruiker['naam']);
             header('Location: ' . $doel);
             exit;
         }
@@ -52,14 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Inloggen — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Inloggen — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body class="login-pagina">
     <div class="login-box">
         <div class="login-merk">
+            <div class="app-icoon">❤</div>
             <div class="circu">Circuleather</div>
             <div class="tagline">re-<span class="hart">❤</span> leather · leeropslag</div>
         </div>
@@ -88,10 +98,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <label for="email">E-mailadres</label>
-            <input type="email" id="email" name="email" value="<?= htmlspecialchars($email) ?>" required autofocus>
+            <input type="email" id="email" name="email" value="<?= htmlspecialchars($email) ?>" required autofocus autocomplete="email">
 
             <label for="wachtwoord">Wachtwoord</label>
-            <input type="password" id="wachtwoord" name="wachtwoord" required>
+            <div class="wachtwoord-rij">
+                <input type="password" id="wachtwoord" name="wachtwoord" required autocomplete="current-password">
+                <button type="button" class="toon-wachtwoord"
+                        onclick="var i = document.getElementById('wachtwoord'); i.type = i.type === 'password' ? 'text' : 'password'; this.textContent = i.type === 'password' ? 'Toon' : 'Verberg';">Toon</button>
+            </div>
 
             <button type="submit">Inloggen</button>
         </form>

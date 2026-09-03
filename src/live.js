@@ -27,3 +27,44 @@ function livePoll(maakUrl, verwerk, intervalMs) {
     });
     tik();
 }
+
+/* Algemene app-hulp: succesmeldingen als toast, FAB en inklapbare filters. */
+function initApp() {
+    // Succesmelding (.msg) verschijnt als toast en verdwijnt vanzelf.
+    var msgs = document.querySelectorAll('.msg');
+    for (var i = 0; i < msgs.length; i++) {
+        (function (el) {
+            setTimeout(function () {
+                el.classList.add('verdwijn');
+                setTimeout(function () { if (el.parentNode) { el.parentNode.removeChild(el); } }, 380);
+            }, 4200);
+        })(msgs[i]);
+    }
+
+    // Zwevende actieknop (+): openen/sluiten, en sluiten bij klik erbuiten.
+    var fab = document.getElementById('fab');
+    var fabKnop = fab ? fab.querySelector('.fab-knop') : null;
+    if (fab && fabKnop) {
+        fabKnop.addEventListener('click', function () { fab.classList.toggle('open'); });
+        document.addEventListener('click', function (e) {
+            if (fab.classList.contains('open') && !fab.contains(e.target)) {
+                fab.classList.remove('open');
+            }
+        });
+    }
+
+    // Inklapbare filterbalk op telefoon.
+    var knoppen = document.querySelectorAll('.filters-knop');
+    for (var j = 0; j < knoppen.length; j++) {
+        knoppen[j].addEventListener('click', function () {
+            var blok = this.closest('.filterblok');
+            if (blok) { blok.classList.toggle('open'); }
+        });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}

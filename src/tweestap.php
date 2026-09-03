@@ -1,6 +1,7 @@
 <?php
 require 'auth.php';
 require 'totp.php';
+require 'functies.php';
 
 // Al ingelogd? Dan is deze stap niet nodig.
 if (ingelogdeGebruiker() !== null) {
@@ -32,6 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (valideerTotp($gebruiker['totp_secret'], $code)
         || gebruikHerstelcode($pdo, (int)$gebruiker['id'], $code)) {
         meldAan($gebruiker);
+        if (!empty($_POST['onthouden'])) {
+            onthoudApparaat($pdo, (int)$gebruiker['id']);
+            logActie($pdo, 'apparaat_onthouden', 'Dit apparaat wordt 30 dagen onthouden (' . apparaatLabel() . ')');
+        }
+        logActie($pdo, 'inloggen', 'Ingelogd met 2FA als ' . $gebruiker['naam']);
         $doel = $wacht['doel'] ?? 'index.php';
         wisTweeStapWacht();
         header('Location: ' . (isVeiligePaginaUrl($doel) ? $doel : 'index.php'));
@@ -44,10 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tweede stap — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = 'Tweede stap — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body class="login-pagina">
     <div class="login-box">
@@ -67,6 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="code">Authenticator-code of herstelcode</label>
             <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code"
                    placeholder="000000" required autofocus>
+            <label class="checkbox-rij" style="margin-top:14px">
+                <input type="checkbox" name="onthouden" value="1" checked>
+                Onthoud dit apparaat 30 dagen (geen code meer vragen op deze telefoon)
+            </label>
             <button type="submit">Verifiëren</button>
         </form>
 

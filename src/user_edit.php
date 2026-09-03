@@ -1,5 +1,6 @@
 <?php
 require 'auth.php';
+require 'functies.php';
 vereisAdmin();
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
@@ -30,7 +31,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['actie'] ?? '') === 'reset_
         $upd = $pdo->prepare('UPDATE gebruikers SET totp_secret = NULL WHERE id = ?');
         $upd->execute([(int)$bestaand['id']]);
         wisHerstelcodes($pdo, (int)$bestaand['id']);
+        wisApparatenVanGebruiker($pdo, (int)$bestaand['id']);
+        logActie($pdo, '2fa_gereset', '2FA gereset voor ' . $bestaand['email']);
         header('Location: users.php?msg=2fa-gereset');
+        exit;
+    }
+    header('Location: users.php');
+    exit;
+}
+
+// Alle onthouden apparaten van dit account wissen.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['actie'] ?? '') === 'wis_apparaten') {
+    if ($bestaand !== null) {
+        wisApparatenVanGebruiker($pdo, (int)$bestaand['id']);
+        logActie($pdo, 'apparaten_gewist', 'Alle onthouden apparaten gewist voor ' . $bestaand['email']);
+        header('Location: user_edit.php?id=' . (int)$bestaand['id'] . '&msg=apparaten-gewist');
         exit;
     }
     header('Location: users.php');
@@ -96,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $input['rol'],
                 $input['actief'] ? 1 : 0,
             ]);
+            logActie($pdo, 'gebruiker_aangemaakt', 'Account aangemaakt voor ' . $input['email'] . ' (rol: ' . $input['rol'] . ')');
             header('Location: users.php?msg=created');
             exit;
         }
@@ -112,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare('UPDATE gebruikers SET wachtwoord_hash = ? WHERE id = ?');
             $stmt->execute([$wachtwoordHash, $id]);
         }
+        logActie($pdo, 'gebruiker_bijgewerkt', 'Account bijgewerkt: ' . $input['email'] . ' (rol: ' . $input['rol'] . ')');
         header('Location: users.php?msg=updated');
         exit;
     }
@@ -120,10 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $bestaand ? 'Medewerker bewerken' : 'Nieuwe medewerker' ?> — Circuleather</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <?php $titel = ($bestaand ? 'Medewerker bewerken' : 'Nieuwe medewerker') . ' — Circuleather'; ?>
+    <?php include 'head.php'; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>
@@ -169,7 +184,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit"><?= $bestaand ? 'Opslaan' : 'Account aanmaken' ?></button>
     </form>
 
-    <?php if ($bestaand): ?>
+    <?php if ($bestaand):
+        // Aantal onthouden apparaten van dit account.
+        $stmtApp = $pdo->prepare('SELECT COUNT(*) FROM apparaten WHERE gebruiker_id = ?');
+        $stmtApp->execute([(int)$bestaand['id']]);
+        $aantalApparaten = (int)$stmtApp->fetchColumn();
+        ?>
         <div class="kaart">
             <h2>Tweestapsverificatie</h2>
             <?php if (!empty($bestaand['totp_secret'])): ?>
@@ -187,6 +207,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ? 'Beheerders moeten 2FA instellen bij hun volgende login.'
                     : 'De medewerker kan het zelf aanzetten via Mijn account.' ?></p>
             <?php endif; ?>
+
+            <h2 style="margin-top:22px">Onthouden apparaten</h2>
+            <p class="meta"><?= $aantalApparaten ?> apparaat<?= $aantalApparaten === 1 ? '' : 'en' ?> onthouden
+            (2FA wordt daar 30 dagen overgeslagen). Wis ze als er een verloren of onbekend apparaat tussen zit:</p>
+            <form method="post">
+                <input type="hidden" name="actie" value="wis_apparaten">
+                <button type="submit" class="secondary"
+                        onclick="return confirm('Alle onthouden apparaten van dit account vergeten?')">Alle apparaten wissen</button>
+            </form>
         </div>
     <?php endif; ?>
 </body>
