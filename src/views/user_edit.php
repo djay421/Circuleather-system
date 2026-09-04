@@ -1,6 +1,6 @@
 <?php
-require 'auth.php';
-require 'functies.php';
+require __DIR__ . '\/..\/core\/auth.php';
+require __DIR__ . '\/..\/components\/functies.php';
 vereisAdmin();
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);

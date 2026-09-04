@@ -41,6 +41,15 @@ function navIcoon(string $naam): string
     </nav>
 </header>
 
+<div class="pwa-banner" id="pwa-banner" hidden>
+    <span class="pwa-banner-icoon" aria-hidden="true">📲</span>
+    <span class="pwa-banner-tekst"><strong>Installeer Leeropslag als app</strong><small>Snel starten vanaf je beginscherm, met eigen icoon</small></span>
+    <span class="pwa-banner-knoppen">
+        <button type="button" class="pwa-installeer" id="pwa-installeer">Installeren</button>
+        <button type="button" class="pwa-later" id="pwa-later" aria-label="Nu niet">Later</button>
+    </span>
+</div>
+
 <nav class="bodem-nav" aria-label="Hoofdnavigatie">
     <a href="index.php" class="<?= in_array($navPagina, ['index.php', 'add.php', 'edit.php', 'delete.php'], true) ? 'actief' : '' ?>">
         <?= navIcoon('voorraad') ?><span>Voorraad</span>

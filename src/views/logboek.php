@@ -1,7 +1,14 @@
 <?php
-require 'auth.php';
+// Live-fragment (?deel=…): machine-leesbaar antwoord → nooit PHP-notices
+// in de JSON en nergens cachen (belangrijk op gedeelde hosting).
+if (isset($_GET['deel'])) {
+    error_reporting(E_ERROR | E_PARSE);
+    ini_set('display_errors', '0');
+    header('Cache-Control: no-store');
+}
+require __DIR__ . '/../core/auth.php';
 vereisAdmin();
-require 'functies.php';
+require __DIR__ . '/../components/functies.php';
 
 // Filters
 $van = trim((string)($_GET['van'] ?? ''));
@@ -117,7 +124,7 @@ if ($liveFragment) {
 <html lang="nl">
 <head>
     <?php $titel = 'Logboek — Circuleather'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/../components/head.php';; ?>
 </head>
 <body>
     <?php include 'nav.php'; ?>

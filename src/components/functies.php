@@ -3,7 +3,7 @@
 // Criteria en hun keuzes worden uit de database gelezen, zodat ze in de
 // backend kunnen worden uitgebreid of aangepast zonder code aan te passen.
 
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '\/..\/config\/db.php';
 
 const CATEGORIEEN = ['bigbag', 'leersample'];
 const STATUSSEX = ['beschikbaar', 'gereserveerd', 'in_bewerking', 'verkocht'];

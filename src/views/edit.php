@@ -1,7 +1,7 @@
 <?php
-require 'auth.php';
+require __DIR__ . '\/..\/core\/auth.php';
 vereisLogin();
-require 'functies.php';
+require __DIR__ . '\/..\/components\/functies.php';
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
 if ($id <= 0) {

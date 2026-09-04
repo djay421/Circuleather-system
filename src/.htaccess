@@ -1,0 +1,4 @@
+# Circuleather Leeropslag — Apache-instellingen (werkt o.a. op InfinityFree).
+# Zonder dit MIME-type weigert Chrome het PWA-manifest en kan de app niet
+# als app worden geïnstalleerd.
+AddType application/manifest+json .webmanifest

@@ -1,7 +1,7 @@
 <?php
-require 'auth.php';
-require 'totp.php';
-require 'functies.php';
+require __DIR__ . '\/..\/core\/auth.php';
+require __DIR__ . '\/..\/core\/totp.php';
+require __DIR__ . '\/..\/components\/functies.php';
 vereisLogin();
 
 $gebruiker = ingelogdeGebruiker();

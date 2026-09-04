@@ -113,9 +113,18 @@ fragment-eindpunt (`?deel=tbody` / `?deel=grid`) en vervangen alleen het
 veranderde deel (rijen/kaarten + tellingen). Zet iemand anders een item toe,
 wijzigt de status of verkoopt een sample, dan zie je dat op een open pagina
 binnen enkele seconden verschijnen — zonder te verversen. In een tab op de
-achtergrond wordt er niet gepollt; zodra je terugkeert volgt direct een
-controle. De gegevens komen uit dezelfde database en dezelfde sessiebeveiliging
-als de gewone pagina's.
+achtergrond wordt er niet gepollt; zodra je terugkeert (of het venster weer
+focus krijgt of de verbinding terugkomt) volgt direct een controle. De
+gegevens komen uit dezelfde database en dezelfde sessiebeveiliging als de
+gewone pagina's.
+
+Dit werkt ook op gewone gedeelde https-hosting zoals InfinityFree: het is
+een licht verzoekje per 3 seconden, zonder speciale servervoorzieningen.
+De fragment-antwoorden worden nooit gecached (`Cache-Control: no-store`) en
+PHP-notices kunnen de JSON niet verstoren. Draait de pagina op de
+achtergrond, is de sessie verlopen of is er geen verbinding, dan wordt het
+groene "live"-stipje naast de titel grijs; zodra het weer lukt wordt hij
+alweer groen en volgt automatisch de nieuwste stand.
 
 ## Mobiel & PWA (installeren op je telefoon)
 
@@ -134,10 +143,22 @@ app-ervaring in plaats van een verkleinde website.
   onderaan in beeld terwijl je scrollt.
 - **Toasts**: succesmeldingen verschijnen als korte melding bovenaan en
   verdwijnen vanzelf; foutmeldingen blijven staan.
-- **Installeren (PWA)**: de app heeft een manifest + app-iconen. Op je
-  telefoon kies je "Toevoegen aan beginscherm" (Android: menu → App
-  installeren; iPhone: Delen → Zet op beginscherm). De app opent daarna
-  eigen venster (standalone) met een eigen icoon, zoals een echte app.
+- **Installeren (PWA)**: de app heeft een manifest + app-iconen (incl.
+  maskable-variant voor Android) en een **service worker** (`sw.js`) — de
+  technische vereiste om een site als app te kunnen installeren. Zonder
+  verbinding toont de app een eigen offline-pagina; pagina's en live-data
+  worden altijd vers van de server opgehaald.
+  - **Android/Chrome**: menu (⋮) → "App installeren" (of "Toevoegen aan
+    startscherm"); de installatieknop verschijnt pas nadat je de site een
+    keer via https hebt bezocht en ingelogd. Zodra de browser de app
+    installeerbaar vindt, toont de app zelf ook een banner met een
+    "Installeren"-knop (boven de inhoud) — geen zoekwerk in het menu.
+    Koos je eerder "Later", dan komt die banner in die sessie niet meer
+    terug en gebruik je het menu.
+  - **iPhone/Safari**: Delen → "Zet op beginscherm".
+  - De app opent daarna in een eigen venster (standalone) met een eigen
+    icoon, zoals een echte app. Werkt alleen via **https** of localhost;
+    bij een nieuwe domeinnaam moet je de app opnieuw installeren.
 - Grotere knoppen en invoervelden (geen per ongeluk zoom op iOS), live-stipje
   op pagina's die automatisch bijwerken, en rijen als kaarten met een
   kleurrand (rood = bigbag, goud = leersample) en een pijltje naar Bewerken.
@@ -329,8 +350,19 @@ PHP 8, MySQL en https op je eigen subdomein.
    `htdocs`-map van je hosting-account, via de bestandsbeheerder of FTP.
 5. Importeer `init.sql` in de nieuwe database via het phpMyAdmin van je
    hoster (tabblad Import).
-6. Open je subdomein en log in met de standaardaccounts (zie boven).
-   Verander meteen de wachtwoorden, want de site is nu publiek.
+6. Schakel **gratis SSL** in zodat de site via `https://` werkt (PWA en
+   camera-scannen vereisen https): in het InfinityFree-controlepaneel bij
+   "Free SSL Certificates" je subdomein toevoegen en het certificaat laten
+   genereren. De map `src/` bevat ook een `.htaccess` die het juiste
+   MIME-type voor het PWA-manifest instelt (nodig op InfinityFree).
+7. Open `https://<jouw-subdomein>` en log in met de standaardaccounts (zie
+   boven). Verander meteen de wachtwoorden, want de site is nu publiek.
+8. **Installeer de app op je telefoon** (zie "Mobiel & PWA" hierboven):
+   Android/Chrome menu → "App installeren", iPhone → Delen → "Zet op
+   beginscherm". De service worker wordt bij het eerste bezoek geladen;
+   de installatieoptie verschijnt meestal direct daarna (soms pas bij het
+   tweede bezoek). Het icoon (donker blad met koraal hart) komt op je
+   startscherm en de app opent in een eigen venster.
 
 De online database is een aparte kopie: gegevens die je daar toevoegt staan
 niet in je lokale Docker-database en andersom. Na het testen kun je de

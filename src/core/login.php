@@ -1,6 +1,6 @@
 <?php
-require 'auth.php';
-require 'functies.php';
+require __DIR__ . '/../config/db.php';
+require __DIR__ . '/../components/functies.php';
 
 if (ingelogdeGebruiker() !== null) {
     header('Location: index.php');
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <?php $titel = 'Inloggen — Circuleather'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/../components/head.php';; ?>
 </head>
 <body class="login-pagina">
     <div class="login-box">

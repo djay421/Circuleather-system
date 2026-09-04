@@ -1,7 +1,7 @@
 <?php
-require 'auth.php';
+require __DIR__ . '\/..\/core\/auth.php';
 vereisLogin();
-require 'functies.php';
+require __DIR__ . '\/..\/components\/functies.php';
 
 $criteria = haalCriteria($pdo);
 $steden = haalSteden($pdo);

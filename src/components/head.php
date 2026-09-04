@@ -13,5 +13,15 @@ $titel = $titel ?? 'Circuleather — Leeropslag';
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title><?= htmlspecialchars($titel) ?></title>
-<link rel="stylesheet" href="style.css?v=7">
-<script src="live.js" defer></script>
+<link rel="stylesheet" href="style.css?v=9">
+<script src="live.js?v=9"></script>
+<script>
+/* PWA: service worker registreren — maakt de app installeerbaar en toont
+   bij verbindingsverlies een offline-pagina. Registratie is eenmalig en
+   werkt op elke https-omgeving (localhost, InfinityFree, tunnel). */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+}
+</script>
