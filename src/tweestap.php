@@ -1,7 +1,8 @@
 <?php
-require __DIR__ . '/../config/db.php';;
-require __DIR__ . '/../core/totp.php';;
-require __DIR__ . '/../components/functies.php';
+require __DIR__ . '/config/db.php';
+require __DIR__ . '/core/auth.php';
+require __DIR__ . '/core/totp.php';
+require __DIR__ . '/components/functies.php';
 
 // Al ingelogd? Dan is deze stap niet nodig.
 if (ingelogdeGebruiker() !== null) {
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <?php $titel = 'Tweede stap — Circuleather'; ?>
-    <?php include __DIR__ . '/../components/head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body class="login-pagina">
     <div class="login-box">

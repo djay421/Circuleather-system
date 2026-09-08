@@ -27,8 +27,8 @@ Open daarna:
 
 ## Database opnieuw initialiseren
 
-De database wordt aangemaakt met `init.sql` wanneer de MySQL-volume voor het
-eerst wordt aangemaakt. Na een wijziging van `init.sql` moet de volume opnieuw
+De database wordt aangemaakt met `database/init.sql` wanneer de MySQL-volume voor het
+eerst wordt aangemaakt. Na een wijziging van `database/init.sql` moet de volume opnieuw
 worden aangemaakt:
 
 ```sh
@@ -74,7 +74,9 @@ zonder dat de applicatie herbouwd hoeft te worden.
 
 ## Projectstructuur
 
-- `init.sql` — volledige database: schema + voorbeeldgegevens (steden, criteria, opties, gebruikers)
+- `database/` — database-schema, voorbeeldgegevens en losse migraties
+  - `init.sql` — volledige database: schema + voorbeeldgegevens
+  - `migrations/` — wijzigingen voor databases die al bestaan
 - `src/` — de applicatie (platte PHP, geen framework)
   - `index.php` voorraadoverzicht met tabs (Alles/Bigbags/Leersamples) en filters
   - `galerij.php` verkoopgalerij van leersamples (foto's, verkoop + ongedaan maken)
@@ -89,6 +91,8 @@ zonder dat de applicatie herbouwd hoeft te worden.
   - `uploads/` geüploade productfoto's (map wordt bijgehouden, staat in .gitignore)
   - `live.js` live-updates + app-hulp (toasts, FAB, inklapbare filters)
 - `docker-compose.yml` + `Dockerfile` — lokale omgeving (Apache + PHP + MySQL + phpMyAdmin)
+- `docs/` — extra deployment- en beheerinformatie
+- `archive/` — oude backups en exports die niet in de actieve applicatie horen
 
 ## Voorraad: tabs en filters
 
@@ -341,28 +345,44 @@ PHP 8, MySQL en https op je eigen subdomein.
 
 1. Maak een account en een hosting-account aan; je krijgt een subdomein
    (bijv. `circuleather.epizy.com`) met https.
-2. Maak in het controlepaneel een MySQL-database aan. Noteer de
-   databasenaam, -gebruiker, -wachtwoord en de host (zoals `sqlXXX.infinityfree.com`).
-3. Kopieer `src/db.local.example.php` naar `src/db.local.php` en vul die
-   gegevens in (dit bestand staat in .gitignore, dus je wachtwoord wordt
-   nooit gecommit).
-4. Upload alle bestanden uit `src/` (inclusief `db.local.php`) naar de
+2. Maak in het controlepaneel een MySQL-database aan (sectie "MySQL Databases").
+   Noteer de **volledige** databasenaam (zoals `if0_12345678_circuleather`), de
+   gebruiker (`if0_12345678`) en de host (zoals `sqlXXX.infinityfree.com`).
+3. Zoek je database-wachtwoord op: in de client area bij je account op
+   **Manage** → scroll naar **MySQL Details** → **Show** bij Password. Dit is
+   het wachtwoord van je *hosting-account* — dat is een ander wachtwoord dan
+   waarmee je inlogt in de client area zelf. (Dit gaat het vaakst mis: het
+   verkeerde wachtwoord geeft fout 1045 "Access denied".)
+4. Kopieer `src/config/db.local.example.php` naar `src/config/db.local.php`
+   en vul de vier waarden in (dit bestand staat in .gitignore, dus je
+   wachtwoord wordt nooit gecommit).
+5. Upload alle bestanden uit `src/` (inclusief `config/db.local.php`) naar de
    `htdocs`-map van je hosting-account, via de bestandsbeheerder of FTP.
-5. Importeer `init.sql` in de nieuwe database via het phpMyAdmin van je
+6. Importeer `database/init.sql` in de nieuwe database via het phpMyAdmin van je
    hoster (tabblad Import).
-6. Schakel **gratis SSL** in zodat de site via `https://` werkt (PWA en
+7. Schakel **gratis SSL** in zodat de site via `https://` werkt (PWA en
    camera-scannen vereisen https): in het InfinityFree-controlepaneel bij
    "Free SSL Certificates" je subdomein toevoegen en het certificaat laten
    genereren. De map `src/` bevat ook een `.htaccess` die het juiste
    MIME-type voor het PWA-manifest instelt (nodig op InfinityFree).
-7. Open `https://<jouw-subdomein>` en log in met de standaardaccounts (zie
+8. Open `https://<jouw-subdomein>` en log in met de standaardaccounts (zie
    boven). Verander meteen de wachtwoorden, want de site is nu publiek.
-8. **Installeer de app op je telefoon** (zie "Mobiel & PWA" hierboven):
+9. **Installeer de app op je telefoon** (zie "Mobiel & PWA" hierboven):
    Android/Chrome menu → "App installeren", iPhone → Delen → "Zet op
    beginscherm". De service worker wordt bij het eerste bezoek geladen;
    de installatieoptie verschijnt meestal direct daarna (soms pas bij het
    tweede bezoek). Het icoon (donker blad met koraal hart) komt op je
    startscherm en de app opent in een eigen venster.
+
+> **Foutmelding `SQLSTATE[HY000] [1045] Access denied for user 'if0_…'@'192.168.0.…'`
+> bij de eerste keer openen?** Dan klopt de combinatie gebruiker/wachtwoord/
+> databasenaam niet (de server zelf is wél bereikbaar). Open in de browser
+> `https://<jouw-subdomein>/test-db.php`: die toont precies welke instellingen
+> de app gelezen heeft en test de server en de database apart. Meestal is het
+> (1) het verkeerde wachtwoord — gebruik het hosting-account-wachtwoord uit
+> "MySQL Details", niet je client-area-wachtwoord — of (2) een databasenaam
+> zonder volledige prefix (`if0_42826696_…`). Verwijder `test-db.php` van de
+> server zodra alles werkt.
 
 De online database is een aparte kopie: gegevens die je daar toevoegt staan
 niet in je lokale Docker-database en andersom. Na het testen kun je de

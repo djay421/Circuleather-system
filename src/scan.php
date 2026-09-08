@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisLogin();
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/components/functies.php';
 
 $errors = [];
 $melding = '';
@@ -71,10 +71,10 @@ if ($code !== '' && empty($errors)) {
 <html lang="nl">
 <head>
     <?php $titel = 'Scannen — Circuleather'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body class="smal">
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <a class="back-link" href="index.php">&larr; Terug naar overzicht</a>
     <h1>📷 Scannen</h1>
 

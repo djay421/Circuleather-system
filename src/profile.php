@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
-require __DIR__ . '\/..\/core\/totp.php';
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/core/auth.php';
+require __DIR__ . '/core/totp.php';
+require __DIR__ . '/components/functies.php';
 vereisLogin();
 
 $gebruiker = ingelogdeGebruiker();
@@ -60,10 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <?php $titel = 'Mijn account — Circuleather'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <a class="back-link" href="index.php">&larr; Terug naar voorraad</a>
     <h1>Mijn account</h1>
 

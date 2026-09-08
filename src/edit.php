@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisLogin();
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/components/functies.php';
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
 if ($id <= 0) {
@@ -137,10 +137,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <?php $titel = 'Circuleather — Voorraad bewerken'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <a class="back-link" href="index.php">&larr; Terug naar overzicht</a>
     <h1>Voorraad bewerken — <?= htmlspecialchars(itemLabel($item)) ?> (<?= $categorie ?>)</h1>
 

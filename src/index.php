@@ -6,9 +6,9 @@ if (isset($_GET['deel'])) {
     ini_set('display_errors', '0');
     header('Cache-Control: no-store');
 }
-require __DIR__ . '/../core/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisLogin();
-require __DIR__ . '/../components/functies.php';
+require __DIR__ . '/components/functies.php';
 
 $berichten = [
     'added' => 'Voorraad toegevoegd.',
@@ -110,10 +110,10 @@ if ($liveFragment) {
 <html lang="nl">
 <head>
     <?php $titel = 'Circuleather — Voorraad'; ?>
-    <?php include __DIR__ . '/../components/head.php';; ?>
+    <?php include __DIR__ . '/components/head.php';; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <h1>Voorraad <small><span class="live-stip" title="Automatisch bijgewerkt"></span><span id="live-tel"><?= count($items) ?> items</span></small></h1>
 
     <?php if (isset($berichten[$msg])): ?>

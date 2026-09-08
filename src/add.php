@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisLogin();
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/components/functies.php';
 
 $criteria = haalCriteria($pdo);
 $steden = haalSteden($pdo);
@@ -141,10 +141,10 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
 <html lang="nl">
 <head>
     <?php $titel = 'Circuleather — Voorraad toevoegen'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <a class="back-link" href="index.php">&larr; Terug naar overzicht</a>
     <h1>Nieuwe voorraad toevoegen</h1>
 

@@ -6,9 +6,9 @@ if (isset($_GET['deel'])) {
     ini_set('display_errors', '0');
     header('Cache-Control: no-store');
 }
-require __DIR__ . '/../core/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisLogin();
-require __DIR__ . '/../components/functies.php';
+require __DIR__ . '/components/functies.php';
 
 $errors = [];
 $melding = '';
@@ -144,10 +144,10 @@ if ($liveFragment) {
 <html lang="nl">
 <head>
     <?php $titel = 'Galerij — Circuleather'; ?>
-    <?php include __DIR__ . '/../components/head.php';; ?>
+    <?php include __DIR__ . '/components/head.php';; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <h1>Galerij <small><span class="live-stip" title="Automatisch bijgewerkt"></span><span id="gal-tel">leersamples · <?= $aantalTeKoop ?> te koop · <?= $aantalVerkocht ?> verkocht</span></small></h1>
     <p class="meta">De samples die beschikbaar zijn als verkoop. Toon een klant het staal op je
     telefoon of tablet; met “Verkoop” haal je de sample direct uit de voorraad (registratie: wie en wanneer).</p>

@@ -1,6 +1,6 @@
 <?php
-require __DIR__ . '/../core/auth.php';
-require __DIR__ . '/../components/functies.php';
+require __DIR__ . '/core/auth.php';
+require __DIR__ . '/components/functies.php';
 vereisAdmin();
 
 $jaar = (string)date('Y');
@@ -95,10 +95,10 @@ $geschiedenis = $pdo->query(
 <html lang="nl">
 <head>
     <?php $titel = 'QR-labels — Circuleather'; ?>
-    <?php include __DIR__ . '/../components/head.php';; ?>
+    <?php include __DIR__ . '/components/head.php';; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
 
     <div class="niet-printen">
         <a class="back-link" href="index.php">&larr; Terug naar voorraad</a>

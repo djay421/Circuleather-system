@@ -1,6 +1,6 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/core/auth.php';
+require __DIR__ . '/components/functies.php';
 vereisAdmin();
 
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
@@ -26,7 +26,7 @@ $input = [
 
 // 2FA uitzetten (bijv. verloren telefoon): alleen voor een bestaand account.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['actie'] ?? '') === 'reset_2fa') {
-    require_once 'totp.php';
+    require_once __DIR__ . '/core/totp.php';
     if ($bestaand !== null && !empty($bestaand['totp_secret'])) {
         $upd = $pdo->prepare('UPDATE gebruikers SET totp_secret = NULL WHERE id = ?');
         $upd->execute([(int)$bestaand['id']]);
@@ -138,10 +138,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <?php $titel = ($bestaand ? 'Medewerker bewerken' : 'Nieuwe medewerker') . ' — Circuleather'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <a class="back-link" href="users.php">&larr; Terug naar medewerkers</a>
     <h1><?= $bestaand ? 'Medewerker bewerken — ' . htmlspecialchars($bestaand['naam']) : 'Nieuwe medewerker' ?></h1>
 

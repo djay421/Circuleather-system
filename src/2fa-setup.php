@@ -1,7 +1,8 @@
 <?php
-require __DIR__ . '/../config/db.php';
-require __DIR__ . '/../core/totp.php';
-require __DIR__ . '/../components/functies.php';
+require __DIR__ . '/config/db.php';
+require __DIR__ . '/core/auth.php';
+require __DIR__ . '/core/totp.php';
+require __DIR__ . '/components/functies.php';
 
 // Twee situaties:
 // 1) Verplicht: beheerder is net ingelogd met wachtwoord, 2FA staat nog uit (wachtende stap).
@@ -87,7 +88,7 @@ $codes = $fase === 'codes' && empty($codes) ? ($_SESSION['2fa_codes'] ?? []) : $
 <html lang="nl">
 <head>
     <?php $titel = '2FA instellen — Circuleather'; ?>
-    <?php include __DIR__ . '/../components/head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body class="login-pagina">
     <div class="login-box">

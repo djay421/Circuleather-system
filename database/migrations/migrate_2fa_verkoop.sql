@@ -1,5 +1,5 @@
 -- Incrementele migratie (draaiende database): 2FA + verkoopregistraties.
--- Uitvoeren: docker exec -i circuleather_db mysql -uroot -proot_password circuleather_crm < .freebuff/migrate_2fa_verkoop.sql
+-- Uitvoeren vanuit de projectroot: docker exec -i circuleather_db mysql -uroot -proot_password circuleather_crm < database/migrations/migrate_2fa_verkoop.sql
 
 ALTER TABLE gebruikers ADD COLUMN totp_secret VARCHAR(64) NULL AFTER actief;
 

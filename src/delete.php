@@ -1,7 +1,7 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisLogin();
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/components/functies.php';
 
 $id = (int)($_GET['id'] ?? 0);
 

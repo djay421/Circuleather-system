@@ -6,9 +6,9 @@ if (isset($_GET['deel'])) {
     ini_set('display_errors', '0');
     header('Cache-Control: no-store');
 }
-require __DIR__ . '/../core/auth.php';
+require __DIR__ . '/core/auth.php';
 vereisAdmin();
-require __DIR__ . '/../components/functies.php';
+require __DIR__ . '/components/functies.php';
 
 // Filters
 $van = trim((string)($_GET['van'] ?? ''));
@@ -124,10 +124,10 @@ if ($liveFragment) {
 <html lang="nl">
 <head>
     <?php $titel = 'Logboek — Circuleather'; ?>
-    <?php include __DIR__ . '/../components/head.php';; ?>
+    <?php include __DIR__ . '/components/head.php';; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <a class="back-link" href="users.php">&larr; Terug naar beheer</a>
     <h1>Logboek <small><span class="live-stip" title="Automatisch bijgewerkt"></span><span id="log-tel"><?= $totaal ?> meldingen</span></small></h1>
     <p class="meta">Alles wat er in de app gebeurt, in één overzicht: wie deed wat en wanneer,

@@ -1,5 +1,5 @@
 -- Incrementele migratie (draaiende database): QR-labels bijhouden.
--- Uitvoeren: docker exec -i circuleather_db mysql -uroot -proot_password circuleather_crm < .freebuff/migrate_qr_labels.sql
+-- Uitvoeren vanuit de projectroot: docker exec -i circuleather_db mysql -uroot -proot_password circuleather_crm < database/migrations/migrate_qr_labels.sql
 
 CREATE TABLE IF NOT EXISTS qr_labels (
     id INT AUTO_INCREMENT PRIMARY KEY,

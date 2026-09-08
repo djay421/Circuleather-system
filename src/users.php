@@ -1,6 +1,6 @@
 <?php
-require __DIR__ . '\/..\/core\/auth.php';
-require __DIR__ . '\/..\/components\/functies.php';
+require __DIR__ . '/core/auth.php';
+require __DIR__ . '/components/functies.php';
 vereisAdmin();
 
 $fout = '';
@@ -37,10 +37,10 @@ $gebruikers = $pdo->query('SELECT id, naam, email, rol, actief, totp_secret, aan
 <html lang="nl">
 <head>
     <?php $titel = 'Medewerkers — Circuleather'; ?>
-    <?php include 'head.php'; ?>
+    <?php include __DIR__ . '/components/head.php'; ?>
 </head>
 <body>
-    <?php include 'nav.php'; ?>
+    <?php include __DIR__ . '/components/nav.php'; ?>
     <h1>Medewerkers</h1>
 
     <?php if ($fout): ?>
