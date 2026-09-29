@@ -4,7 +4,7 @@ $titel = $titel ?? 'Circuleather — Leeropslag';
 ?>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ee5a48">
+<meta name="theme-color" content="#d8563f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,7 +13,7 @@ $titel = $titel ?? 'Circuleather — Leeropslag';
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title><?= htmlspecialchars($titel) ?></title>
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=11">
 <script src="live.js?v=9"></script>
 <script>
 /* PWA: service worker registreren — maakt de app installeerbaar en toont

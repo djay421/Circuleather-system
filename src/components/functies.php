@@ -8,6 +8,28 @@ require_once __DIR__ . '/../config/db.php';
 const CATEGORIEEN = ['bigbag', 'leersample'];
 const STATUSSEX = ['beschikbaar', 'gereserveerd', 'in_bewerking', 'verkocht'];
 
+function appIcoon(string $naam): string
+{
+    $paden = [
+        'box' => '<path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+        'thread' => '<path d="M6 4v16M6 6h8a3 3 0 0 1 0 6H6m0 0h8a3 3 0 0 1 0 6H6"/>',
+        'tag' => '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H13l7 7-9 9-7-7z"/><circle cx="8" cy="8" r="1"/>',
+        'chart' => '<path d="M4 19V5M4 19h16M8 16v-5M12 16V7M16 16v-3"/>',
+        'camera' => '<path d="M4 8h3l1.5-2h7L17 8h3v10H4z"/><circle cx="12" cy="13" r="3"/>',
+        'clipboard' => '<path d="M8 5h8v15H5V5h3M9 3h6v4H9z"/><path d="m8 13 2 2 5-5"/>',
+        'print' => '<path d="M7 9V4h10v5M7 17H4V9h16v8h-3M7 14h10v6H7z"/>',
+        'eye' => '<path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5z"/><circle cx="12" cy="12" r="2.5"/>',
+        'eye-off' => '<path d="m3 3 18 18M10.6 6.2A10.7 10.7 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-3.1 3.5M6.2 6.8C3.8 8.4 2.5 12 2.5 12s3.5 6 9.5 6c1 0 2-.2 2.8-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+        'hart' => '<path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
+        'download' => '<path d="M12 3v9M12 12l2.5 4M12 12l-2.5 4M6 16h12v4H6z"/>',
+        'check' => '<path d="M20 6L9 17 4 12"/>',
+        'gebruiker' => '<circle cx="12" cy="8" r="4"/><path d="M4.5 20c1-4 4-6 7.5-6s6.5 2 7.5 6"/>',
+        'prullenbak' => '<path d="M4 5h16M6 8h12v10H6z"/>',
+        'plus' => '<path d="M12 5v14M5 12h14"/>',
+    ];
+    return '<svg class="app-icoon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . ($paden[$naam] ?? '') . '</svg>';
+}
+
 /** Alle actieve criteria met hun keuzemogelijkheden, gesorteerd. */
 function haalCriteria(PDO $pdo): array
 {

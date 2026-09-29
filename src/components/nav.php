@@ -23,7 +23,10 @@ function navIcoon(string $naam): string
 ?>
 <header class="sitekop">
     <div class="sitekop-boven">
-        <a class="merk" href="index.php">Circuleather<span class="tagline">leeropslag <span class="hart">&#10084;</span></span></a>
+        <a class="merk" href="index.php">
+            <span class="merk-icoon" aria-hidden="true"><?= appIcoon('hart') ?></span>
+            <span class="merk-tekst">Circuleather<span class="tagline">leeropslag</span></span>
+        </a>
         <div class="gebruiker-zone">
             <a class="gebruiker" href="profile.php" title="Mijn account"><?= htmlspecialchars($navGebruiker['naam']) ?></a>
             <a class="uitloggen" href="logout.php" title="Uitloggen">Uitloggen</a>
@@ -42,7 +45,7 @@ function navIcoon(string $naam): string
 </header>
 
 <div class="pwa-banner" id="pwa-banner" hidden>
-    <span class="pwa-banner-icoon" aria-hidden="true">📲</span>
+    <span class="pwa-banner-icoon" aria-hidden="true"><?= appIcoon('box') ?></span>
     <span class="pwa-banner-tekst"><strong>Installeer Leeropslag als app</strong><small>Snel starten vanaf je beginscherm, met eigen icoon</small></span>
     <span class="pwa-banner-knoppen">
         <button type="button" class="pwa-installeer" id="pwa-installeer">Installeren</button>

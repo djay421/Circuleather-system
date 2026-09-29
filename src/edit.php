@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <?php include __DIR__ . '/components/nav.php'; ?>
-    <a class="back-link" href="index.php">&larr; Terug naar overzicht</a>
+    <a class="back-link" href="index.php">Terug naar overzicht</a>
     <h1>Voorraad bewerken — <?= htmlspecialchars(itemLabel($item)) ?> (<?= $categorie ?>)</h1>
 
     <?php if (!empty($errors)): ?>

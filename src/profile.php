@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <?php include __DIR__ . '/components/nav.php'; ?>
-    <a class="back-link" href="index.php">&larr; Terug naar voorraad</a>
+    <a class="back-link" href="index.php">Terug naar voorraad</a>
     <h1>Mijn account</h1>
 
     <?php if ($melding): ?>
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <dt>E-mailadres</dt><dd><?= htmlspecialchars($rij['email']) ?></dd>
             <dt>Rol</dt><dd><span class="badge <?= htmlspecialchars($rij['rol']) ?>"><?= htmlspecialchars(rolLabel($rij['rol'])) ?></span></dd>
         </dl>
-        <p class="meta">Wachtwoord wijzigen kan de beheerder doen via Medewerkers → Bewerken.</p>
+        <p class="meta">Wachtwoord wijzigen kan de beheerder doen via de pagina Medewerkers.</p>
     </div>
 
     <?php

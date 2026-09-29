@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <?php include __DIR__ . '/components/nav.php'; ?>
-    <a class="back-link" href="users.php">&larr; Terug naar medewerkers</a>
+    <a class="back-link" href="users.php">Terug naar medewerkers</a>
     <h1><?= $bestaand ? 'Medewerker bewerken — ' . htmlspecialchars($bestaand['naam']) : 'Nieuwe medewerker' ?></h1>
 
     <?php if (!empty($errors)): ?>

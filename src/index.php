@@ -121,16 +121,16 @@ if ($liveFragment) {
     <?php endif; ?>
 
     <div class="stat-rij">
-        <div class="stat"><span class="stat-icoon">📦</span><span class="stat-label">Bigbags</span><span class="stat-waarde" id="stat-bigbags"><?= $totaalBigbags ?></span></div>
-        <div class="stat"><span class="stat-icoon">🧵</span><span class="stat-label">Leersamples</span><span class="stat-waarde" id="stat-samples"><?= $totaalSamples ?></span></div>
-        <div class="stat"><span class="stat-icoon">🏷</span><span class="stat-label">Te koop</span><span class="stat-waarde" id="stat-beschikbaar"><?= $totaalBeschikbaar ?></span></div>
-        <div class="stat"><span class="stat-icoon">📊</span><span class="stat-label">Totaal items</span><span class="stat-waarde" id="stat-totaal"><?= $totaalAlle ?></span></div>
+        <div class="stat"><span class="stat-icoon"><?= appIcoon('box') ?></span><span class="stat-label">Bigbags</span><span class="stat-waarde" id="stat-bigbags"><?= $totaalBigbags ?></span></div>
+        <div class="stat"><span class="stat-icoon"><?= appIcoon('thread') ?></span><span class="stat-label">Leersamples</span><span class="stat-waarde" id="stat-samples"><?= $totaalSamples ?></span></div>
+        <div class="stat"><span class="stat-icoon"><?= appIcoon('tag') ?></span><span class="stat-label">Te koop</span><span class="stat-waarde" id="stat-beschikbaar"><?= $totaalBeschikbaar ?></span></div>
+        <div class="stat"><span class="stat-icoon"><?= appIcoon('chart') ?></span><span class="stat-label">Totaal items</span><span class="stat-waarde" id="stat-totaal"><?= $totaalAlle ?></span></div>
     </div>
 
     <div class="knoppen toevoegen-rij">
-        <a href="add.php?categorie=bigbag">+ Bigbag toevoegen</a>
-        <a href="add.php?categorie=leersample" class="secondary">+ Leersample toevoegen</a>
-        <a href="scan.php" class="secondary">📷 Scan met camera</a>
+        <a href="add.php?categorie=bigbag"><?= appIcoon('plus') ?> Bigbag toevoegen</a>
+        <a href="add.php?categorie=leersample" class="secondary"><?= appIcoon('plus') ?> Leersample toevoegen</a>
+        <a href="scan.php" class="secondary"><?= appIcoon('camera') ?> Scan met camera</a>
     </div>
 
     <div class="v-filterbalk">
@@ -204,9 +204,9 @@ if ($liveFragment) {
         </thead>
         <tbody id="live-rijen">
         <?php if (empty($items)): ?>
-            <tr><td colspan="7" class="lege-tabel"><div class="lege-inner"><span class="lege-icoon">📦</span><p><?= $heeftFilters
+            <tr><td colspan="7" class="lege-tabel"><div class="lege-inner"><span class="lege-icoon"><?= appIcoon('box') ?></span><p><?= $heeftFilters
                 ? 'Geen voorraad gevonden met deze filters.'
-                : ($soort === 'bigbag' ? 'Nog geen bigbags geregistreerd.' : ($soort === 'leersample' ? 'Nog geen leersamples geregistreerd.' : 'Nog geen voorraad toegevoegd.')) ?></p><a href="<?= $legeCta ?>">+ Toevoegen</a></div></td></tr>
+                : ($soort === 'bigbag' ? 'Nog geen bigbags geregistreerd.' : ($soort === 'leersample' ? 'Nog geen leersamples geregistreerd.' : 'Nog geen voorraad toegevoegd.')) ?></p><a href="<?= $legeCta ?>"><?= appIcoon('plus') ?> Toevoegen</a></div></td></tr>
         <?php else: foreach ($items as $v): $itemKenmerken = $kenmerken[(int)$v['id']] ?? [];
             $kleurwaarde = $v['categorie'] === 'leersample' ? ($itemKenmerken['Kleurcategorie'][0] ?? '') : ''; ?>
             <tr class="rij-<?= $v['categorie'] ?>">
@@ -276,9 +276,9 @@ if ($liveFragment) {
     </script>
     <div class="fab" id="fab">
         <div class="fab-items">
-            <a href="add.php?categorie=bigbag">📦 Bigbag toevoegen</a>
-            <a href="add.php?categorie=leersample">🧵 Leersample toevoegen</a>
-            <a href="scan.php">📷 Scannen</a>
+            <a href="add.php?categorie=bigbag"><?= appIcoon('box') ?> Bigbag toevoegen</a>
+            <a href="add.php?categorie=leersample"><?= appIcoon('thread') ?> Leersample toevoegen</a>
+            <a href="scan.php"><?= appIcoon('camera') ?> Scannen</a>
         </div>
         <button type="button" class="fab-knop" aria-label="Toevoegen">+</button>
     </div>

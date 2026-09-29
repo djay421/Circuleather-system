@@ -92,6 +92,13 @@ $codes = $fase === 'codes' && empty($codes) ? ($_SESSION['2fa_codes'] ?? []) : $
 </head>
 <body class="login-pagina">
     <div class="login-box">
+        <?php if ($fase !== 'codes'): ?>
+            <div class="login-merk">
+                <div class="app-icoon" aria-hidden="true"><?= appIcoon('hart') ?></div>
+                <div class="circu">Circuleather</div>
+                <div class="tagline">re-leather · leeropslag</div>
+            </div>
+        <?php endif; ?>
         <?php if ($fase === 'codes'): ?>
             <h1>Herstelcodes bewaard?</h1>
             <p class="meta"><strong>2FA is nu aan.</strong> Deze tien eenmalige codes zijn je redding als je

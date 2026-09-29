@@ -50,9 +50,9 @@ $gebruikers = $pdo->query('SELECT id, naam, email, rol, actief, totp_secret, aan
     <?php endif; ?>
 
     <div class="knoppen">
-        <a href="user_edit.php">+ Nieuwe medewerker</a>
-        <a class="secondary" href="logboek.php">📋 Logboek bekijken</a>
-        <a class="secondary" href="labels.php">🏷 QR-labels genereren</a>
+        <a href="user_edit.php"><?= appIcoon('plus') ?> Nieuwe medewerker</a>
+        <a class="secondary" href="logboek.php"><?= appIcoon('clipboard') ?> Logboek bekijken</a>
+        <a class="secondary" href="labels.php"><?= appIcoon('tag') ?> QR-labels genereren</a>
     </div>
     <table>
         <thead>

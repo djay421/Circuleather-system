@@ -145,7 +145,7 @@ $categorie = in_array($input['categorie'], CATEGORIEEN, true) ? $input['categori
 </head>
 <body>
     <?php include __DIR__ . '/components/nav.php'; ?>
-    <a class="back-link" href="index.php">&larr; Terug naar overzicht</a>
+    <a class="back-link" href="index.php">Terug naar overzicht</a>
     <h1>Nieuwe voorraad toevoegen</h1>
 
     <?php if (!empty($errors)): ?>

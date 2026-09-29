@@ -30,25 +30,26 @@
 }
 
 :root {
-    /* Core Colors */
-    --bg: #f1ece2;
-    --oppervlak: #fffdf8;
-    --oppervlak-2: #f8f3e9;
-    --lijn: #e2dac9;
-    --lijn-sterk: #c9bea8;
-    --inkt: #1f1810;
-    --tekst: #42392c;
-    --mild: #7a6e5a;
-    --leer: #e95a44;
-    --leer-donker: #c93d28;
-    --leer-licht: #f8d7d0;
-    --leer-zacht: #fdeeea;
-    --bruin: #7d5230;
+    /* Core Colors — één palette, overal vandaan gehaald.
+       Contrastsgetallen getest op witte oppervlakken (WCAG AA). */
+    --bg: #f5f6f3;
+    --oppervlak: #ffffff;
+    --oppervlak-2: #f0f2ef;
+    --lijn: #d9dfda;
+    --lijn-sterk: #aebbb3;
+    --inkt: #18221d;
+    --tekst: #33413a;
+    --mild: #4a5750;
+    --leer: #d8563f;
+    --leer-donker: #a83d2d;
+    --leer-licht: #f7ddd7;
+    --leer-zacht: #fcefeb;
+    --bruin: #6d4a2f;
     --bruin-zacht: #f3e7d8;
-    --groen: #2f7d52;
-    --groen-donker: #266242;
+    --groen: #256b45;
+    --groen-donker: #1d5637;
     --groen-zacht: #e6f4ec;
-    --amber: #8a6416;
+    --amber: #7a5a12;
     --amber-zacht: #faf0da;
     --blauw: #2b5fbf;
     --blauw-donker: #234c98;
@@ -59,14 +60,12 @@
 
     /* Gradients */
     --gradient-leer: linear-gradient(135deg, var(--leer), var(--leer-donker));
-    --gradient-bg-top: radial-gradient(1100px 520px at 85% -10%, rgba(214, 110, 60, .08), transparent 60%);
-    --gradient-bg-bottom: radial-gradient(900px 520px at -10% 110%, rgba(125, 82, 48, .07), transparent 55%);
 
     /* Shadows */
     --schaduw: 0 1px 3px rgba(29, 26, 22, .08), 0 4px 12px -4px rgba(29, 26, 22, .12);
     --schaduw-hoog: 0 4px 6px -1px rgba(29, 26, 22, .1), 0 24px 30px -5px rgba(29, 26, 22, .08);
     --schaduw-kaart: 0 2px 8px -2px rgba(29, 26, 22, .06), 0 4px 12px -2px rgba(29, 26, 22, .08);
-    --schaduw-fab: 0 4px 12px -2px rgba(238, 90, 72, .4);
+    --schaduw-fab: 0 4px 12px -2px rgba(216, 86, 63, .4);
 
     /* Radii */
     --radius: 16px;
@@ -99,21 +98,8 @@ body {
     font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: var(--font-base);
     line-height: 1.7;
-    background: var(--gradient-bg-top), var(--gradient-bg-bottom), var(--bg);
-    background-attachment: fixed;
+    background: var(--bg);
     -webkit-tap-highlight-color: transparent;
-}
-
-/* Subtiele leer-grein over de hele achtergrond */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: .055;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.6'/></svg>");
-    background-size: 180px 180px;
 }
 
 body.smal { max-width: 780px; }
@@ -155,19 +141,8 @@ h1 small {
 h2 {
     font-size: clamp(18px, 4vw, 22px);
     margin: 24px 0 12px;
-    position: relative;
 }
-h2::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 32px;
-    height: 2px;
-    background: var(--leer);
-    border-radius: 1px;
-}
-h2 small { color: var(--leer); font-weight: 500; }
+h2 small { color: var(--leer-donker); font-weight: 500; }
 h3 {
     font-size: clamp(16px, 3.5vw, 20px);
     margin: 20px 0 8px;
@@ -193,9 +168,13 @@ a:hover { color: var(--leer); }
     transform: translateX(-2px);
 }
 .back-link::before {
-    content: "←";
-    font-size: 18px;
-    line-height: 1;
+    content: "";
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5M12 19l-7-7 7-7'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 12H5M12 19l-7-7 7-7'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 /* --- Live indicator --- */
@@ -303,10 +282,10 @@ a:hover { color: var(--leer); }
 }
 .merk {
     display: inline-flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 10px;
     font-family: "Poppins", sans-serif;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
@@ -314,14 +293,27 @@ a:hover { color: var(--leer); }
     text-decoration: none;
     line-height: 1.1;
 }
+.merk-icoon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: var(--leer);
+    color: #fff;
+    box-shadow: 0 2px 6px -1px rgba(168, 61, 45, .35);
+}
+.merk-icoon .app-icoon-svg { width: 18px; height: 18px; }
 .merk .tagline {
+    display: block;
     font-size: 9px;
     font-weight: 500;
     letter-spacing: .32em;
     text-transform: uppercase;
     color: var(--mild);
+    margin-top: 2px;
 }
-.merk .hart { color: var(--leer); }
 .gebruiker-zone { display: flex; align-items: center; gap: 6px; }
 .gebruiker-zone a {
     text-decoration: none;
@@ -475,34 +467,14 @@ button,
     text-decoration: none;
     cursor: pointer;
     box-shadow: var(--schaduw);
-    transition: all .15s ease;
-    position: relative;
-    overflow: hidden;
-}
-button::before,
-.knoppen a::before,
-.knoppen button::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 0;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
-    transition: all .5s ease;
-}
-button:hover::before,
-.knoppen a:hover::before,
-.knoppen button:hover::before {
-    left: 100%;
-    width: 200%;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
 }
 button:hover,
 .knoppen a:hover,
 .knoppen button:hover {
     background: var(--leer-donker);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px -2px rgba(233, 90, 68, .35);
+    box-shadow: 0 4px 12px -2px rgba(168, 61, 45, .35);
 }
 button:active,
 .knoppen a:active,
@@ -579,7 +551,7 @@ form .knoppen button[type="submit"] {
     height: 64px;
     min-height: 0;
     border-radius: 50%;
-    background: var(--gradient-leer);
+    background: var(--leer);
     color: #fff;
     font-size: 34px;
     font-weight: 400;
@@ -587,26 +559,10 @@ form .knoppen button[type="submit"] {
     padding: 0;
     border: none;
     box-shadow: var(--schaduw-fab);
-    transition: all .2s ease;
-    position: relative;
-    overflow: hidden;
-}
-.fab-knop::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,.1) 0%, transparent 60%);
-    transform: rotate(0deg);
-    transition: transform .5s ease;
-}
-.fab-knop:hover::before {
-    transform: rotate(360deg);
+    transition: background .2s ease, transform .2s ease;
 }
 .fab-knop:hover {
-    background: linear-gradient(135deg, var(--leer-donker), #a73422);
+    background: var(--leer-donker);
     transform: scale(1.05);
 }
 .fab-knop:active {
@@ -643,28 +599,12 @@ form .knoppen button[type="submit"] {
     text-decoration: none;
     white-space: nowrap;
     box-shadow: var(--schaduw-hoog);
-    transition: all .2s ease;
-    position: relative;
-    overflow: hidden;
-}
-.fab-items a::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(233,90,68,.1), transparent);
-    transition: all .5s ease;
-}
-.fab-items a:hover::before {
-    left: 100%;
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
 .fab-items a:hover {
     color: var(--leer-donker);
     border-color: var(--leer);
     background: var(--oppervlak-2);
-    transform: translateX(-2px);
 }
 @keyframes fab-in {
     from {
@@ -776,15 +716,13 @@ form .knoppen button[type="submit"] {
     position: absolute;
     top: var(--spacing-sm);
     right: var(--spacing-sm);
-    font-size: 20px;
-    opacity: .7;
 }
 .stat-label {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: .09em;
     text-transform: uppercase;
-    color: var(--mild);
+    color: var(--tekst);
     padding-right: 8px;
 }
 .stat-waarde {
@@ -808,7 +746,7 @@ table {
 }
 th {
     background: linear-gradient(to bottom, #faf8f5, #f5f3ee);
-    color: #5d564b;
+    color: var(--tekst);
     text-align: left;
     font-size: 12px;
     font-weight: 600;
@@ -1078,35 +1016,14 @@ td.acties a.wissen {
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
-    transition: all .15s ease;
-    position: relative;
-    overflow: hidden;
 }
 .badge::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
-    transition: all .5s ease;
-}
-.badge:hover::before {
-    left: 100%;
-}
-.badge:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px -1px rgba(0,0,0,.1);
-}
-.badge::after {
     content: "";
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: currentColor;
     opacity: .9;
-    margin-right: var(--spacing-xs);
 }
 .badge.beschikbaar {
     background: var(--groen-zacht);
@@ -1203,31 +1120,12 @@ select {
     font-weight: 600;
     font-size: 14px;
     color: var(--tekst);
-    transition: all .2s ease;
-    position: relative;
-    overflow: hidden;
-}
-.radio-row label::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(233,90,68,.1), transparent);
-    transition: all .5s ease;
-}
-.radio-row label:hover::before {
-    left: 100%;
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
 }
 .radio-row label:has(input:checked) {
     border-color: var(--leer);
     background: var(--leer-zacht);
     color: var(--inkt);
-    transform: translateY(-1px);
-}
-.radio-row label:has(input:checked)::before {
-    left: 100%;
 }
 .checkbox-rij {
     display: flex;
@@ -1327,35 +1225,42 @@ code {
     }
 }
 
-/* Wachtwoord tonen/verbergen */
+/* Wachtwoord tonen/verbergen — compact icoon-knopje in het veld */
 .wachtwoord-rij {
     position: relative;
 }
 .wachtwoord-rij input {
-    padding-right: calc(var(--spacing-lg) * 2.5);
+    padding-right: 52px;
 }
 .toon-wachtwoord {
     position: absolute;
-    right: var(--spacing-sm);
+    right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    min-height: 42px;
-    padding: var(--spacing-sm) var(--spacing-lg);
+    width: 38px;
+    height: 38px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
     background: transparent;
     color: var(--mild);
     border: 0;
+    border-radius: var(--radius-klein);
     box-shadow: none;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all .2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    cursor: pointer;
+    transition: color .15s ease, background .15s ease;
 }
 .toon-wachtwoord:hover {
     background: var(--oppervlak-2);
     color: var(--inkt);
 }
+.toon-wachtwoord:focus-visible {
+    outline: 2px solid var(--leer);
+    outline-offset: 1px;
+}
+.toon-wachtwoord .app-icoon-svg { width: 20px; height: 20px; }
 
 /* --- Voorraad: filterbalk + kleurbol --- */
 .kleurbol {
@@ -1403,24 +1308,7 @@ code {
     color: var(--mild);
     text-decoration: none;
     white-space: nowrap;
-    transition: all .2s ease;
-    position: relative;
-    overflow: hidden;
-}
-.v-filterbalk .segm a::before,
-.g-filters .segm a::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0,0,0,.05), transparent);
-    transition: all .5s ease;
-}
-.v-filterbalk .segm a:hover::before,
-.g-filters .segm a:hover::before {
-    left: 100%;
+    transition: color .15s ease, background .15s ease;
 }
 .v-filterbalk .segm a:hover,
 .g-filters .segm a:hover {
@@ -1430,10 +1318,6 @@ code {
 .g-filters .segm a.actief {
     background: var(--inkt);
     color: #fff;
-}
-.v-filterbalk .segm a.actief::before,
-.g-filters .segm a.actief::before {
-    left: 100%;
 }
 .v-filterbalk form,
 .v-filterform {
@@ -1517,35 +1401,23 @@ code {
         color: var(--tekst);
         cursor: pointer;
         box-shadow: none;
-        transition: all .2s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .filters-knop::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0,0,0,.05), transparent);
-        transition: all .5s ease;
-    }
-    .filters-knop:hover::before {
-        left: 100%;
+        transition: background .15s ease;
     }
     .filters-knop:hover {
         background: var(--oppervlak-2);
     }
     .filters-knop::after {
-        content: "▾";
-        color: var(--mild);
-        font-size: 16px;
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-right: 2px solid var(--mild);
+        border-bottom: 2px solid var(--mild);
+        transform: rotate(45deg);
         transition: transform .2s ease;
+        margin-right: 4px;
     }
     .filterblok.open .filters-knop::after {
-        content: "▴";
-        transform: rotate(180deg);
+        transform: rotate(-135deg);
     }
     .filters-tel {
         background: var(--leer-zacht);
@@ -2068,19 +1940,18 @@ body.login-pagina {
     max-width: none;
     padding: 20px calc(20px + env(safe-area-inset-right, 0px));
     background:
-        radial-gradient(900px 520px at 12% -6%, rgba(238, 90, 72, .28), transparent 60%),
-        radial-gradient(720px 520px at 108% 108%, rgba(201, 154, 63, .12), transparent 55%),
-        #17130e;
+        radial-gradient(900px 520px at 12% -6%, rgba(216, 86, 63, .22), transparent 60%),
+        radial-gradient(720px 520px at 108% 108%, rgba(74, 87, 80, .10), transparent 55%),
+        #1d211e;
 }
 .login-box {
     background: var(--oppervlak);
     padding: clamp(var(--spacing-2xl), 6vw, var(--spacing-3xl));
-    border-radius: 20px;
+    border-radius: 14px;
     max-width: 440px;
     width: 100%;
     box-shadow: 0 35px 90px -28px rgba(0, 0, 0, .68);
-    border: 1px solid rgba(255, 255, 255, .12);
-    backdrop-filter: blur(4px);
+    border: 1px solid var(--lijn);
 }
 .login-box h1 {
     margin: 0 0 var(--spacing-sm);
@@ -2200,48 +2071,6 @@ body.login-pagina {
     }
 }
 
-/* --- Dark mode support (for future) --- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #1a1610;
-        --oppervlak: #241f18;
-        --oppervlak-2: #2c261f;
-        --lijn: #3d352b;
-        --lijn-sterk: #4a4035;
-        --inkt: #f5f1ea;
-        --tekst: #e8dfd0;
-        --mild: #b8aa96;
-        --leer: #f46152;
-        --leer-donker: #d94e42;
-        --groen: #3f9e62;
-        --groen-zacht: #2c4a38;
-    }
-
-    body {
-        background:
-            radial-gradient(1100px 520px at 85% -10%, rgba(214, 110, 60, .04), transparent 60%),
-            radial-gradient(900px 520px at -10% 110%, rgba(125, 82, 48, .03), transparent 55%),
-            var(--bg);
-    }
-
-    body::before {
-        opacity: .03;
-    }
-
-    .sitekop {
-        background: rgba(26, 22, 16, .85);
-    }
-
-    .bodem-nav {
-        background: rgba(26, 22, 16, .9);
-    }
-
-    .login-box {
-        box-shadow: 0 25px 50px -15px rgba(0, 0, 0, .7);
-        border: 1px solid rgba(255, 255, 255, .05);
-    }
-}
-
 /* --- Accessibility enhancements --- */
 @media (prefers-reduced-motion: reduce) {
     * {
@@ -2251,31 +2080,30 @@ body.login-pagina {
     }
 }
 
-/* --- Touch enhancements --- */
-@media (hover: none) {
-    .btn:hover,
-    .knoppen a:hover,
-    .knoppen button:hover,
-    .fab-knop:hover,
-    .pwa-banner .pwa-installeer:hover,
-    .wis-filters:hover,
-    .filters-knop:hover,
-    .tab-nav a:hover,
-    .stat:hover,
-    .kaart:hover,
-    .g-kaart:hover,
-    .qr-label:hover,
-    .badge:hover,
-    .radio-row label:hover,
-    .filters-knop:hover::before,
-    .fab-knop:hover::before,
-    .v-filterbalk .segm a:hover::before,
-    .g-filters .segm a:hover::before,
-    .radio-row label:hover::before,
-    .toon-wachtwoord:hover,
-    .form-acties a:hover,
-    .td.acties a:hover,
-    .rij-chevron:hover {
-        /* Reduce hover effects on touch devices */
-    }
+/* --- Icon sizes --- */
+.sitekop { background: rgba(255, 255, 255, .97); }
+.bodem-nav { background: rgba(255, 255, 255, .98); }
+.stat-icoon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    color: var(--leer-donker);
+    background: var(--leer-zacht);
+    border-radius: 8px;
 }
+.app-icoon-svg { display: block; width: 20px; height: 20px; }
+.stat-icoon .app-icoon-svg { width: 17px; height: 17px; }
+.pwa-banner-icoon .app-icoon-svg { width: 22px; height: 22px; }
+.g-fotoknop .app-icoon-svg,
+.knoppen .app-icoon-svg { width: 17px; height: 17px; }
+.lege-inner .lege-icoon { color: var(--leer-donker); }
+.lege-inner .lege-icoon .app-icoon-svg { width: 38px; height: 38px; }
+h1 .app-icoon-svg { width: 22px; height: 22px; vertical-align: -3px; }
+.meta .app-icoon-svg { width: 15px; height: 15px; vertical-align: -2px; color: var(--groen); }
+.login-merk .app-icoon {
+    border-radius: 12px;
+    color: #fff;
+    background: var(--leer-donker);
+}
+.login-merk .app-icoon .app-icoon-svg { width: 30px; height: 30px; }

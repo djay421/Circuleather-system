@@ -128,14 +128,14 @@ if ($liveFragment) {
 </head>
 <body>
     <?php include __DIR__ . '/components/nav.php'; ?>
-    <a class="back-link" href="users.php">&larr; Terug naar beheer</a>
+    <a class="back-link" href="users.php">Terug naar beheer</a>
     <h1>Logboek <small><span class="live-stip" title="Automatisch bijgewerkt"></span><span id="log-tel"><?= $totaal ?> meldingen</span></small></h1>
     <p class="meta">Alles wat er in de app gebeurt, in één overzicht: wie deed wat en wanneer,
     en vanaf welk apparaat. Wordt automatisch bijgewerkt. Download de (gefilterde) lijst als
     CSV voor in Excel.</p>
 
     <div class="knoppen">
-        <a href="<?= htmlspecialchars($csvUrl) ?>">⬇ Download CSV</a>
+        <a href="<?= htmlspecialchars($csvUrl) ?>"><?= appIcoon('download') ?> Download CSV</a>
         <a class="secondary" href="logboek.php">Alles tonen</a>
     </div>
 

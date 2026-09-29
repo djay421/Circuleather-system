@@ -75,8 +75,8 @@ if ($code !== '' && empty($errors)) {
 </head>
 <body class="smal">
     <?php include __DIR__ . '/components/nav.php'; ?>
-    <a class="back-link" href="index.php">&larr; Terug naar overzicht</a>
-    <h1>📷 Scannen</h1>
+    <a class="back-link" href="index.php">Terug naar overzicht</a>
+    <h1><?= appIcoon('camera') ?> Scannen</h1>
 
     <?php if (!empty($errors)): ?>
         <div class="fout"><ul>
@@ -133,7 +133,7 @@ if ($code !== '' && empty($errors)) {
                     </ul>
                 <?php endif; ?>
                 <div class="knoppen">
-                    <a href="add.php?categorie=leersample&bigbag_id=<?= (int)$item['id'] ?>">+ Leersample toevoegen uit deze bigbag</a>
+                    <a href="add.php?categorie=leersample&bigbag_id=<?= (int)$item['id'] ?>"><?= appIcoon('plus') ?> Leersample toevoegen uit deze bigbag</a>
                 </div>
             <?php endif; ?>
 
@@ -180,13 +180,13 @@ if ($code !== '' && empty($errors)) {
                 verse zaklabel die net binnenkomt. Registreer de bigbag bij inname: weeg de zak en
                 noteer herkomststad, datum en inhoud.</p>
                 <?php if ($labelInfo): ?>
-                    <p class="meta">✓ Label is eerder gegenereerd
+                    <p class="meta"><?= appIcoon('check') ?> Label is eerder gegenereerd
                     <?= $labelInfo['gebruiker'] ? 'door ' . htmlspecialchars($labelInfo['gebruiker']) . ' ' : '' ?>
                     op <?= htmlspecialchars(date('d-m-Y H:i', strtotime($labelInfo['aangemaakt_op']))) ?>.
                     Je kunt hem dus gerust registreren.</p>
                 <?php endif; ?>
                 <div class="knoppen">
-                    <a href="add.php?categorie=bigbag&code=<?= urlencode($code) ?>">+ Registreer nieuwe bigbag</a>
+                    <a href="add.php?categorie=bigbag&code=<?= urlencode($code) ?>"><?= appIcoon('plus') ?> Registreer nieuwe bigbag</a>
                 </div>
             </div>
         <?php endif; ?>

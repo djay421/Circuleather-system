@@ -210,12 +210,12 @@ if ($liveFragment) {
                     <?php if (!empty($v['foto'])): ?>
                         <div class="g-foto"><img src="<?= htmlspecialchars($v['foto']) ?>" alt="Foto van <?= htmlspecialchars(itemLabel($v)) ?>">
                     <?php else: ?>
-                        <div class="g-staal" style="<?= $staalKleur ? 'background:' . $staalKleur : 'background:var(--beige)' ?>">
+                        <div class="g-staal" style="<?= $staalKleur ? 'background:' . $staalKleur : 'background:var(--bruin-zacht)' ?>">
                     <?php endif; ?>
                         <form class="g-fotovorm" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="actie" value="foto">
                             <input type="hidden" name="id" value="<?= (int)$v['id'] ?>">
-                            <label class="g-fotoknop" title="<?= empty($v['foto']) ? 'Foto toevoegen' : 'Foto vervangen' ?>"><?= empty($v['foto']) ? '📷 Foto' : '📷 Vervang' ?>
+                            <label class="g-fotoknop" title="<?= empty($v['foto']) ? 'Foto toevoegen' : 'Foto vervangen' ?>"><?= appIcoon('camera') ?> <?= empty($v['foto']) ? 'Foto' : 'Vervang' ?>
                                 <input type="file" name="foto" accept="image/*" onchange="this.form.submit()">
                             </label>
                         </form>

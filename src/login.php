@@ -70,9 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="login-pagina">
     <div class="login-box">
         <div class="login-merk">
-            <div class="app-icoon">❤</div>
+            <div class="app-icoon" aria-hidden="true"><?= appIcoon('hart') ?></div>
             <div class="circu">Circuleather</div>
-            <div class="tagline">re-<span class="hart">❤</span> leather · leeropslag</div>
+            <div class="tagline">re-leather · leeropslag</div>
         </div>
         <h1>Inloggen</h1>
         <p class="meta">Log in om de voorraad te bekijken of te beheren.</p>
@@ -104,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="wachtwoord">Wachtwoord</label>
             <div class="wachtwoord-rij">
                 <input type="password" id="wachtwoord" name="wachtwoord" required autocomplete="current-password">
-                <button type="button" class="toon-wachtwoord"
-                        onclick="var i = document.getElementById('wachtwoord'); i.type = i.type === 'password' ? 'text' : 'password'; this.textContent = i.type === 'password' ? 'Toon' : 'Verberg';">Toon</button>
+                <button type="button" class="toon-wachtwoord" aria-label="Wachtwoord tonen" title="Wachtwoord tonen"
+                    data-eye data-target="wachtwoord"><?= appIcoon('eye') ?></button>
             </div>
 
             <button type="submit">Inloggen</button>
@@ -113,5 +113,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p class="voetnoot">Wachtwoord vergeten of nog geen toegang?<br>Neem contact op met de beheerder.</p>
     </div>
+    <script>
+        document.querySelectorAll('[data-eye]').forEach(function (knop) {
+            knop.addEventListener('click', function () {
+                var veld = document.getElementById(knop.getAttribute('data-target'));
+                if (!veld) { return; }
+                var zichtbaar = veld.type === 'password';
+                veld.type = zichtbaar ? 'text' : 'password';
+                knop.innerHTML = zichtbaar ? <?= json_encode(appIcoon('eye-off')) ?> : <?= json_encode(appIcoon('eye')) ?>;
+                knop.setAttribute('aria-label', zichtbaar ? 'Wachtwoord verbergen' : 'Wachtwoord tonen');
+                knop.setAttribute('title', zichtbaar ? 'Wachtwoord verbergen' : 'Wachtwoord tonen');
+            });
+        });
+    </script>
 </body>
 </html>

@@ -101,11 +101,11 @@ $geschiedenis = $pdo->query(
     <?php include __DIR__ . '/components/nav.php'; ?>
 
     <div class="niet-printen">
-        <a class="back-link" href="index.php">&larr; Terug naar voorraad</a>
+        <a class="back-link" href="index.php">Terug naar voorraad</a>
         <h1>QR-labels voor bigbags</h1>
         <p class="meta">Maak hier voorbedrukte zaklabels: de app kiest de eerstvolgende vrije nummers
         (<code>BB-2026-&hellip;</code>), zodat een nummer nooit twee keer wordt gedrukt. Print de labels,
-        plak er één op een lege bigbag en scan de code bij inname (📷 Scannen) — dan wordt de zak
+        plak er één op een lege bigbag en scan de code bij inname via Scannen — dan wordt de zak
         als nieuwe bigbag geregistreerd. Een gegenereerd label staat nog <strong>niet</strong> in de voorraad.</p>
 
         <?php if (!empty($errors)): ?>
@@ -131,7 +131,7 @@ $geschiedenis = $pdo->query(
 
     <?php if (!empty($toonCodes)): ?>
         <div class="knoppen niet-printen">
-            <button type="button" onclick="window.print()">🖨 Print deze labels</button>
+            <button type="button" onclick="window.print()"><?= appIcoon('print') ?> Print deze labels</button>
             <a class="secondary" href="labels.php">Opnieuw beginnen</a>
         </div>
 

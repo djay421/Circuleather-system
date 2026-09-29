@@ -56,6 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-pagina">
     <div class="login-box">
+        <div class="login-merk">
+            <div class="app-icoon" aria-hidden="true"><?= appIcoon('hart') ?></div>
+            <div class="circu">Circuleather</div>
+            <div class="tagline">re-leather · leeropslag</div>
+        </div>
         <h1>Tweede stap</h1>
         <p class="meta">Hoi <?= htmlspecialchars($gebruiker['naam']) ?>, vul de 6-cijferige code uit
         <strong>Google Authenticator</strong> in (of een ongebruikte herstelcode, bijv. <code>AB12-CD34</code>).</p>
