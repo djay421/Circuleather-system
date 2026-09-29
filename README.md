@@ -12,6 +12,10 @@ een verkoopgalerij voor leersamples (met eigen foto's per stuk), tabs en
 filters op de voorraadpagina, camera-scannen van bigbag-QR-codes
 en een generator voor voorbedrukte zaklabels (alleen beheerder).
 
+Zonder installeren naar het dashboard
+https://circuleather-shop.ct.ws/index.php
+
+
 ## Starten
 
 Vereisten: Docker Desktop met Docker Compose.
