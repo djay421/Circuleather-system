@@ -8,7 +8,7 @@
    Let op: na wijzigingen in dit bestand de versie hieronder verhogen,
    zodat oude caches worden opgeruimd. */
 
-const CACHE = 'circuleather-v1';
+const CACHE = 'circuleather-v2';
 const PRECACHE = ['offline.html'];
 const ASSET = /\.(css|js|png|jpe?g|webp|gif|svg|woff2?|ttf|otf|webmanifest)(\?|$)/i;
 

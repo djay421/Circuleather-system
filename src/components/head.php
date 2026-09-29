@@ -13,7 +13,7 @@ $titel = $titel ?? 'Circuleather — Leeropslag';
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title><?= htmlspecialchars($titel) ?></title>
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 <script src="live.js?v=9"></script>
 <script>
 /* PWA: service worker registreren — maakt de app installeerbaar en toont
